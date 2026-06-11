@@ -243,12 +243,21 @@
             <div id="imposter-warning" class="hidden bg-red-100 text-red-700 p-2 rounded-xl mb-2 font-bold text-xs animate-pulse">
                ⚠️ 記住！你係臥底！其他人畫緊嘅嘢同你唔同，試下扮識畫，唔好畀人識穿！
             </div>
-            <div class="flex-grow w-full border-2 border-gray-200 rounded-2xl overflow-hidden bg-gray-100 relative mb-3 shadow-inner">
-               <iframe id="reveal-search-iframe" class="w-full h-full border-0 bg-white" src=""></iframe>
+            
+            <div class="flex-grow w-full border-2 border-indigo-100 rounded-2xl overflow-y-auto bg-indigo-50/40 p-6 mb-3 shadow-inner flex flex-col justify-center items-center">
+               <div class="text-indigo-950 max-w-xl text-center">
+                  <p class="text-xl font-black mb-4 text-indigo-800 flex items-center justify-center gap-2">💡 💡 派對密碼提示 💡 💡</p>
+                  <ul class="text-left text-base space-y-3 font-semibold text-gray-600 list-disc pl-5">
+                     <li>如果你對呢個詞語無概念，請撳左下方按鈕直接彈去 Google 睇圖片範例。</li>
+                     <li><span class="text-green-600 font-black">【真正藝術家】</span> 畫線好似擠牙膏咁，千祈唔好一筆畫到太明顯，廢話留返投票階段先講！</li>
+                     <li><span class="text-red-600 font-black">【臥底／白板】</span> 放鬆演技！睇實前面幾個人用緊乜嘢色，順住佢哋嘅結構扮識畫一齊混水摸魚！</li>
+                  </ul>
+               </div>
             </div>
+            
             <div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
-               <a id="reveal-search-link" href="#" target="_blank" class="w-full sm:w-auto bg-gradient-to-r from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center text-sm shadow-md transition-all">
-               🌐 唔識個詞語？喺獨立分頁直接 Google
+               <a id="reveal-search-link" href="#" target="_blank" class="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-black py-4 px-6 rounded-xl flex items-center justify-center text-sm shadow-md transition-all active:scale-95">
+               🌐 唔識個詞語？點呢度開啟 Google 圖片 👀
                </a>
                <button onclick="nextPassOrStartDrawing()" class="w-full sm:flex-1 bg-gray-800 hover:bg-gray-900 text-white font-black text-xl py-4 rounded-xl shadow-lg transform transition-transform active:scale-95 flex items-center justify-center border-b-4 border-gray-950">
                <span class="mr-2 text-2xl">🙈</span> 記低咗，隱藏並繼續
@@ -306,13 +315,17 @@
             <canvas id="game-canvas"></canvas>
          </div>
       </div>
-      <div id="screen-result" class="screen flex-col items-center p-4 sm:p-8 bg-gradient-to-b from-gray-900 to-black text-white relative overflow-hidden">
+      
+      <div id="screen-result" class="screen flex-col items-center p-4 sm:p-8 bg-gradient-to-b from-gray-900 to-black text-white relative overflow-y-auto">
          <h2 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 mb-2 mt-4 text-center z-10 drop-shadow-md">🎨 曠世巨作完成！</h2>
          <p class="text-xl text-gray-300 mb-6 text-center z-10">大家一齊討論下，邊個畫啲嘢九唔搭八？邊個係臥底？</p>
-         <div class="w-full max-w-2xl bg-white rounded-3xl p-2 mb-6 shadow-[0_0_30px_rgba(255,255,255,0.2)] z-10 relative">
+         
+         <!-- 🌟 收復高塌陷 Bug 的核心 Container 佈局：不再使用 hidden 隱藏大圖，而是讓 Canvas 作為 z-20 的頂層貼紙覆蓋 -->
+         <div class="w-full max-w-2xl bg-white rounded-3xl p-2 mb-6 shadow-[0_0_30px_rgba(255,255,255,0.2)] z-10 relative overflow-hidden">
             <img id="final-drawing-img" src="" alt="最終畫作" class="w-full h-auto rounded-2xl border-4 border-gray-100 block">
-            <canvas id="replay-canvas" class="w-full h-auto rounded-2xl border-4 border-gray-100 absolute top-2 left-2 right-2 bottom-2 bg-white hidden" style="width: calc(100% - 16px); height: calc(100% - 16px);"></canvas>
+            <canvas id="replay-canvas" class="absolute inset-2 rounded-2xl bg-white hidden z-20"></canvas>
          </div>
+         
          <div class="flex flex-col sm:flex-row gap-4 w-full max-w-2xl mb-6 z-10">
             <button id="btn-replay" onclick="startReplay()" class="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-bold text-xl py-4 rounded-full shadow-lg transform transition-all active:scale-95 border-2 border-gray-600 flex items-center justify-center">
             🎬 過程重溫 (Replay)
@@ -335,7 +348,7 @@
                   <p id="final-fake-word" class="text-2xl md:text-3xl font-bold text-red-400 drop-shadow">番茄</p>
                </div>
             </div>
-            <button onclick="resetGame()" class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-black text-2xl py-4 px-12 rounded-full shadow-xl transform transition-transform active:scale-95 border-b-4 border-purple-900">
+            <button onclick="resetGame()" class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-black text-2xl py-4 px-12 rounded-full shadow-xl transform transition-transform active:scale-95 border-b-4 border-purple-900 mb-12">
             🔄 再玩一次 (Play Again)
             </button>
          </div>
@@ -361,7 +374,6 @@
          }
          
          const WORD_BANK = [
-            // 食物及飲品類 - 經典美食 (Food & Drinks)
             ["蘋果", "番茄"], ["燒賣", "魚蛋"], ["奶茶", "咖啡"], ["蛋撻", "菠蘿包"],
             ["叉燒", "燒肉"], ["腸粉", "蘿蔔糕"], ["蝦餃", "粉果"], ["凍檸茶", "熱檸水"],
             ["公仔麵", "烏冬"], ["漢堡包", "熱狗"], ["薯條", "薯餅"], ["西多士", "三文治"],
@@ -376,20 +388,16 @@
             ["盆菜", "佛跳牆"], ["水餃", "煎餃"], ["小籠包", "生煎包"], ["月餅", "湯圓"], 
             ["糭", "年糕"], ["芋頭糕", "馬蹄糕"], ["豬仔包", "奶油豬"], ["麥當勞", "肯德基"], 
             ["茶餐廳", "大牌檔"], ["冰室", "快餐店"],
-            
-            // 食物及飲品類 - 蔬果肉類與零食
             ["士多啤梨", "車厘子"], ["西瓜", "蜜瓜"], ["香蕉", "大蕉"], ["雪梨", "水蜜桃"], 
             ["橙", "柚子"], ["芒果", "木瓜"], ["奇異果", "火龍果"], ["提子", "藍莓"], 
             ["榴槤", "大樹菠蘿"], ["番茄", "紅蘿蔔"], ["白菜", "菜心"], ["西蘭花", "椰菜花"], 
             ["粟米", "番薯"], ["洋蔥", "蒜頭"], ["辣椒", "青椒"], ["冬菇", "木耳"], 
             ["紫菜", "海帶"], ["豬肉", "牛肉"], ["雞肉", "鴨肉"], ["羊肉", "鹿肉"], 
             ["魚", "蝦"], ["蟹", "龍蝦"], ["鮑魚", "海參"], ["魷魚", "墨魚"],
-            ["香口膠", "薄荷糖"], ["朱古力", "糖果"], ["餅乾", "薯片"], ["雪糕", "雪條"], 
+            ["香口 gums", "薄荷糖"], ["朱古力", "糖果"], ["餅乾", "薯片"], ["雪糕", "雪條"], 
             ["爆谷", "棉花糖"], ["花生", "開心果"], ["杏仁", "核桃"], ["瓜子", "栗子"], 
             ["蜜糖", "果醬"], ["牛油", "芝士"], ["豉油", "麻油"], ["鹽", "糖"], 
             ["辣椒醬", "番茄醬"], ["咖喱", "沙茶醬"], ["即食麵", "杯麵"], ["罐頭", "火腿"],
-
-            // 交通及地點 (Transport & Places)
             ["的士", "小巴"], ["港鐵", "巴士"], ["渡海小輪", "街渡"], ["電車", "輕鐵"],
             ["旺角", "深水埗"], ["尖沙咀", "銅鑼灣"], ["中環", "金鐘"], ["大嶼山", "長洲"],
             ["維多利亞港", "城門河"], ["海洋公園", "迪士尼"], ["機場", "高鐵站"], ["茶餐廳", "大牌檔"],
@@ -405,12 +413,10 @@
             ["美容院", "髮型屋"], ["商場", "百貨公司"], ["停車場", "油站"], ["天橋", "隧道"], 
             ["馬路", "行人路"], ["斑馬線", "紅綠燈"], ["碼頭", "巴士站"], ["地鐵站", "火車站"], 
             ["長城", "金字塔"], ["巴黎鐵塔", "自由神像"], ["富士山", "大峽谷"],
-
-            // 日常用品、科技及樂器 (Items, Tech & Instruments)
             ["八達通", "信用卡"], ["冷氣機", "風扇"], ["智能手機", "平板電腦"], ["身份證", "護照"],
             ["手錶", "鬧鐘"], ["電視", "電腦"], ["雪櫃", "微波爐"], ["雨傘", "雨衣"],
             ["眼鏡", "隱形眼鏡"], ["口罩", "防毒面具"], ["鎖匙", "密碼鎖"], ["銀包", "手袋"],
-            ["相機", "望遠鏡"], ["耳機", "喇訊"], ["充電器", "尿袋 (移動電源)"], ["牙刷", "毛巾"],
+            ["相機", "望遠鏡"], ["耳機", "喇叭"], ["充電器", "尿袋 (移動電源)"], ["牙刷", "毛巾"],
             ["牙膏", "漱口水"], ["沐浴露", "洗頭水"], ["番梘", "洗手液"], ["紙巾", "濕紙巾"], 
             ["廁紙", "廚房紙"], ["垃圾袋", "環保袋"], ["衣架", "衣夾"], ["地拖", "掃把"], 
             ["吸塵機", "掃地機械人"], ["洗衣機", "乾衣機"], ["抽濕機", "加濕器"], ["暖爐", "暖水袋"], 
@@ -423,8 +429,6 @@
             ["擦膠", "塗改液"], ["間尺", "圓規"], ["螢光筆", "箱頭筆"], ["泥膠", "積木"], 
             ["啤牌", "麻雀"], ["骰仔", "籌碼"], ["棋盤", "拼圖"], ["結他", "小提琴"], 
             ["鋼琴", "電子琴"], ["鼓", "鈸"], ["笛", "口琴"], ["口罩", "眼罩"], 
-
-            // 動物及昆蟲 (Animals & Insects)
             ["貓", "狗"], ["獅子", "老虎"], ["熊貓", "北極熊"], ["企鵝", "海豚"],
             ["豬", "牛"], ["馬", "羊"], ["老鼠", "倉鼠"], ["雀仔", "蝙蝠"],
             ["蜜蜂", "蝴蝶"], ["螞蟻", "蜘蛛"], ["蚊", "蒼蠅"], ["蟑螂", "壁虎"], 
@@ -437,8 +441,6 @@
             ["蝸牛", "蛞蝓"], ["黑熊", "棕熊"], ["水牛", "黃牛"], ["駱駝", "羊駝"], 
             ["刺蝟", "豪豬"], ["海豹", "海象"], ["企鵝", "海鷗"], ["鴕鳥", "火烈鳥"], 
             ["青竹蛇", "眼鏡蛇"], ["草泥馬", "斑馬"], ["壁虎", "蜥蜴"], ["變色龍", "恐龍"],
-
-            // 衣服服飾與身體部位 (Clothing & Body)
             ["T恤", "恤衫"], ["牛仔褲", "西褲"], ["短褲", "長褲"], ["裙", "連身裙"], 
             ["外套", "冷衫"], ["羽絨", "風褸"], ["西裝", "燕尾服"], ["校服", "運動服"], 
             ["睡衣", "泳衣"], ["內衣", "底褲"], ["襪", "絲襪"], ["波鞋", "皮鞋"], 
@@ -451,8 +453,6 @@
             ["額頭", "面珠墩"], ["眼", "眉毛"], ["耳仔", "鼻"], ["口", "唇"], 
             ["牙齒", "舌頭"], ["頭髮", "鬍鬚"], ["指甲", "皮膚"], ["骨", "肉"], 
             ["血管", "神經"], ["心臟", "肺"], ["胃", "腸"], ["大腦", "脊髓"], 
-
-            // 職業、人物與動作 (Roles, Jobs & Actions)
             ["警察", "保安"], ["醫生", "護士"], ["老師", "校長"], ["司機", "車長"],
             ["老闆", "打工仔"], ["YouTuber", "明星"], ["學生", "考生"], ["外賣員", "速遞員"],
             ["消防員", "救護員"], ["律師", "法官"], ["工程師", "建築師"], ["廚師", "侍應"], 
@@ -462,7 +462,7 @@
             ["導遊", "領隊"], ["司儀", "DJ"], ["魔術師", "小丑"], ["和尚", "神父"], 
             ["乞丐", "富翁"], ["皇帝", "總統"], ["公主", "王子"], ["外星人", "鬼魂"], 
             ["神仙", "妖怪"], ["超人", "蝙蝠俠"], 
-            ["游水", "跑步"], ["打波", "踢波"], ["唱歌", "跳舞"], ["打機", "睇戲"],
+            ["遊水", "跑步"], ["打波", "踢波"], ["唱歌", "跳舞"], ["打機", "睇戲"],
             ["瞓覺", "發夢"], ["沖涼", "洗頭"], ["返工", "放假"], ["考試", "做功課"],
             ["結婚", "拍拖"], ["釣魚", "捉蝦"], ["燒烤", "野餐"], ["踩單車", "滑板"], 
             ["溜冰", "滑雪"], ["潛水", "衝浪"], ["跳傘", "攀石"], ["做gym", "做瑜伽"], 
@@ -473,8 +473,6 @@
             ["加", "減"], ["乘", "除"], ["愛", "恨"], 
             ["開心", "傷心"], ["嬲", "驚"], ["悶", "煩"], ["成功", "失敗"], 
             ["希望", "絕望"], ["生", "死"], ["夢想", "現實"], ["過去", "未來"],
-            
-            // 家居環境與建築 (Home & Environment)
             ["升降機", "扶手電梯"], ["樓梯", "走廊"], ["天台", "露台"], ["花園", "車房"], 
             ["大堂", "保安亭"], ["信箱", "垃圾房"], ["會所", "泳池"], ["更衣室", "洗手間"], 
             ["廁所", "浴室"], ["廚房", "客廳"], ["睡房", "書房"], ["飯廳", "雜物房"], 
@@ -482,28 +480,21 @@
             ["被", "枕頭"], ["床單", "被袋"], ["窗簾", "地毯"], ["垃圾桶", "回收箱"], 
             ["花樽", "盆栽"], ["相架", "掛畫"], ["時鐘", "日曆"], ["鏡", "梳"], 
             ["化妝枱", "書枱"], ["電腦枱", "餐枱"], ["摺櫈", "吧櫈"], ["門", "窗"],
-
-            // 香港地標與文化 (HK Landmarks & Culture)
             ["尖沙咀鐘樓", "大三巴牌坊"], ["黃大仙祠", "車公廟"], ["青馬大橋", "昂船洲大橋"], 
             ["天壇大佛", "金紫荊廣場"], ["太空館", "科學館"], ["獅子山", "太平山"],
             ["大館", "PMQ元創方"], ["廟街", "女人街"], ["蘭桂坊", "蘇豪區"],
             ["菠蘿油", "豬扒包"], ["西多士", "法式吐司"], ["絲襪奶茶", "黑牛"],
             ["格仔餅", "雞蛋仔"], ["白糖糕", "砵仔糕"], ["老婆餅", "皮蛋酥"],
-
-            // 品牌、人物與流行文化 (Brands, Pop Culture & Visuals)
             ["周星馳", "劉德華"], ["李小龍", "成龍"], ["葉問", "黃飛鴻"],
             ["多啦A夢", "老夫子"], ["高達", "變形金剛"], ["比卡超", "數碼恐龍"],
             ["超級馬里奧", "超音鼠"], ["蝙蝠俠", "蜘蛛俠"], ["鐵甲奇俠 (Iron Man)", "美國隊長"],
             ["蘋果 (Apple)", "三星 (Samsung)"], ["Nike", "Adidas"], ["麥當勞叔叔", "肯德基爺爺"],
-
-            // 搞怪廣東話俗語 (可畫出嚟的) (Visual Slang)
             ["炒魷魚", "燒豆腐"], ["放飛機", "擲紙飛機"], ["戴綠帽", "買冷帽"],
             ["食死貓", "餵流浪貓"], ["扯線木偶", "稻草人"], ["洗黑錢", "洗衫"],
             ["一頭霧水", "滿頭大汗"], ["吹水", "飲水"], ["捉黃腳鱲", "捉雞"],
             ["拋磚引玉", "擲石頭"]
          ];
          
-         // 🎲 突發任務題庫
          const CHAOS_CHALLENGES = [
              "用非慣用手畫 (Use non-dominant hand)",
              "合埋眼畫 (Draw with eyes closed)",
@@ -518,11 +509,15 @@
          let customWordBank = [];
          const PLAYER_COLORS = ['#FF3B30', '#007AFF', '#4CD964', '#FF9500', '#5856D6', '#FF2D55', '#5AC8FA', '#FFCC00', '#8E8E93', '#A2845E'];
          
-         let config = { players: 4, imposters: 1, blanks: 0, rounds: 2, isOneLineMode: false, isChaosMode: false, timeLimit: 0, canvasTheme: 'white' };        let gameState = { roles: [], currentSetupIndex: 0, currentTurnIndex: 0, totalTurns: 0, strokes: [], currentStroke: null, hasDrawnThisTurn: false, realWord: "", fakeWord: "", currentBrushSize: 8, currentBrushType: 'solid' };
+         let config = { players: 4, imposters: 1, blanks: 0, rounds: 2, isOneLineMode: false, isChaosMode: false, timeLimit: 0, canvasTheme: 'white' };
+         let gameState = { roles: [], currentSetupIndex: 0, currentTurnIndex: 0, totalTurns: 0, strokes: [], currentStroke: null, hasDrawnThisTurn: false, realWord: "", fakeWord: "", currentBrushSize: 8, currentBrushType: 'solid' };
          
          let turnTimer = null;
          let timeLeft = 0;
-         let replayTimeoutIds = []; // 用於清除重播動畫
+         
+         // 🌟 新增：重播專用的生命週期追蹤變數 (取代混亂的 setTimeout 陣列)
+         let replayAnimationFrameId = null;
+         let replayTimeoutIds = []; 
          
          const screens = {
              setup: document.getElementById('screen-setup'),
@@ -582,33 +577,57 @@
          }
          
          function adjustValue(type, amount) {
-         let newVal = config[type] + amount;
-         if (type === 'players') {
-             if (newVal < 3) newVal = 3; if (newVal > 10) newVal = 10;
-             config.players = newVal; document.getElementById('display-players').innerText = config.players;
-             // 自動修正臥底+白板總數
-             adjustValue('imposters', 0); adjustValue('blanks', 0);
-         } else if (type === 'imposters') {
-             let maxSpecial = Math.floor((config.players - 1) / 2);
-             if (newVal < 0) newVal = 0;
-             if (newVal + config.blanks > maxSpecial) { showAlert(`臥底加白板總數不可超過 ${maxSpecial} 個。`); return; }
-             config.imposters = newVal; document.getElementById('display-imposters').innerText = config.imposters;
-         } else if (type === 'blanks') {
-             let maxSpecial = Math.floor((config.players - 1) / 2);
-             if (newVal < 0) newVal = 0;
-             if (newVal > 2) { showAlert(`最多只能有 2 個白板。`); return; }
-             if (newVal + config.imposters > maxSpecial) { showAlert(`臥底加白板總數不可超過 ${maxSpecial} 個。`); return; }
-             config.blanks = newVal; document.getElementById('display-blanks').innerText = config.blanks;
-         } else if (type === 'rounds') {
-                 if (newVal < 1) newVal = 1; if (newVal > 5) newVal = 5;
-                 config.rounds = newVal; document.getElementById('display-rounds').innerText = config.rounds;
+             if (type === 'players') {
+                 let newVal = config.players + amount;
+                 if (newVal < 3) newVal = 3; 
+                 if (newVal > 10) newVal = 10;
+                 config.players = newVal; 
+                 document.getElementById('display-players').innerText = config.players;
+                 
+                 let maxSpecial = Math.floor((config.players - 1) / 2);
+                 while (config.imposters + config.blanks > maxSpecial) {
+                     if (config.blanks > 0) {
+                         config.blanks--;
+                     } else if (config.imposters > 0) {
+                         config.imposters--;
+                     }
+                 }
+                 document.getElementById('display-imposters').innerText = config.imposters;
+                 document.getElementById('display-blanks').innerText = config.blanks;
+                 
+             } else if (type === 'imposters') {
+                 let newVal = config.imposters + amount;
+                 let maxSpecial = Math.floor((config.players - 1) / 2);
+                 if (newVal < 0) newVal = 0;
+                 if (newVal + config.blanks > maxSpecial) { showAlert(`臥底加白板總數不可超過 ${maxSpecial} 個！`); return; }
+                 config.imposters = newVal; 
+                 document.getElementById('display-imposters').innerText = config.imposters;
+                 
+             } else if (type === 'blanks') {
+                 let newVal = config.blanks + amount;
+                 let maxSpecial = Math.floor((config.players - 1) / 2);
+                 if (newVal < 0) newVal = 0;
+                 if (newVal > 2) { showAlert(`最多只能有 2 個白板。`); return; }
+                 if (newVal + config.imposters > maxSpecial) { showAlert(`臥底加白板總數不可超過 ${maxSpecial} 個！`); return; }
+                 config.blanks = newVal; 
+                 document.getElementById('display-blanks').innerText = config.blanks;
+                 
+             } else if (type === 'rounds') {
+                 let newVal = config.rounds + amount;
+                 if (newVal < 1) newVal = 1; 
+                 if (newVal > 5) newVal = 5;
+                 config.rounds = newVal; 
+                 document.getElementById('display-rounds').innerText = config.rounds;
+                 
              } else if (type === 'timeLimit') {
-                 if (newVal < 0) newVal = 0; if (newVal > 60) newVal = 60;
-                 config.timeLimit = newVal; document.getElementById('display-timer').innerText = config.timeLimit;
+                 let newVal = config.timeLimit + amount;
+                 if (newVal < 0) newVal = 0; 
+                 if (newVal > 60) newVal = 60;
+                 config.timeLimit = newVal; 
+                 document.getElementById('display-timer').innerText = config.timeLimit;
              }
          }
          
-         // 🌟 新增：通用開關切換 (一筆過 / 突發任務)
          function toggleSetting(settingKey, elementId) {
              const checkbox = document.getElementById(elementId);
              checkbox.checked = !checkbox.checked;
@@ -626,14 +645,14 @@
                  checkbox.nextElementSibling.classList.replace(bgColor, 'bg-gray-300');
              }
          }
+
          function getUniqueRandom(assigned, max) {
-         let r;
-         do { r = Math.floor(Math.random() * max); } while(assigned.includes(r));
-         assigned.push(r);
-         return r;
+             let r;
+             do { r = Math.floor(Math.random() * max); } while(assigned.includes(r));
+             assigned.push(r);
+             return r;
          }
          
-         // 🌟 新增：切換畫板材質
          function setTheme(theme, btnElement) {
              config.canvasTheme = theme;
              document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active', 'border-indigo-500'));
@@ -651,27 +670,25 @@
              if (Math.random() > 0.5) { gameState.realWord = pair[0]; gameState.fakeWord = pair[1]; } 
              else { gameState.realWord = pair[1]; gameState.fakeWord = pair[0]; }
          
-         let playersArray = Array.from({length: config.players}, (_, i) => ({
-             id: i, name: `玩家 ${i + 1}`, color: PLAYER_COLORS[i], role: '平民', word: gameState.realWord
-         }));
+             let playersArray = Array.from({length: config.players}, (_, i) => ({
+                 id: i, name: `玩家 ${i + 1}`, color: PLAYER_COLORS[i], role: '平民', word: gameState.realWord
+             }));
          
-         let assignedIndices = [];
+             let assignedIndices = [];
+             
+             for(let i=0; i<config.imposters; i++) {
+                 let rand = getUniqueRandom(assignedIndices, config.players);
+                 playersArray[rand].role = '臥底';
+                 playersArray[rand].word = gameState.fakeWord;
+             }
+             
+             for(let i=0; i<config.blanks; i++) {
+                 let rand = getUniqueRandom(assignedIndices, config.players);
+                 playersArray[rand].role = '白板';
+                 playersArray[rand].word = '??? (你係白板，咩都唔知！)';
+             }
          
-         // 分配臥底
-         for(let i=0; i<config.imposters; i++) {
-             let rand = getUniqueRandom(assignedIndices, config.players);
-             playersArray[rand].role = '臥底';
-             playersArray[rand].word = gameState.fakeWord;
-         }
-         
-         // 分配白板
-         for(let i=0; i<config.blanks; i++) {
-             let rand = getUniqueRandom(assignedIndices, config.players);
-             playersArray[rand].role = '白板';
-             playersArray[rand].word = '??? (你係白板，咩都唔知！)';
-         }
-         
-         gameState.roles = playersArray;
+             gameState.roles = playersArray;
              gameState.currentSetupIndex = 0;
              gameState.currentTurnIndex = 0;
              gameState.totalTurns = config.players * config.rounds;
@@ -702,25 +719,24 @@
                  badge.innerText = '🕵️‍♂️ 畫畫臥底 (Imposter)';
                  badge.className = 'inline-block px-4 py-1.5 rounded-full text-base font-black text-white bg-red-600 shadow-md';
                  warningEl.classList.remove('hidden');
+                 warningEl.innerText = '⚠️ 記住！你係臥底！其他人畫緊嘅嘢同你唔同，試下扮識畫，唔好畀人識穿！';
                  wordEl.className = 'text-2xl sm:text-3xl font-black text-red-600 px-6 py-1 border-2 border-red-200 rounded-xl bg-red-50 tracking-widest shadow-inner';
              } else if (player.role === '白板') {
-             badge.innerText = '👻 白板 (The Blank)';
-             badge.className = 'inline-block px-4 py-1.5 rounded-full text-base font-black text-white bg-blue-600 shadow-md';
-             warningEl.classList.remove('hidden');
-             warningEl.innerText = '⚠️ 你係「白板」！你咩題目都冇！觀察其他人畫緊咩，扮識畫，千祈唔好畀人發現你咩都唔知！';
-             wordEl.className = 'text-2xl sm:text-3xl font-black text-blue-600 px-6 py-1 border-2 border-blue-200 rounded-xl bg-blue-50 tracking-widest shadow-inner';
-         }else {
+                 badge.innerText = '👻 白板 (The Blank)';
+                 badge.className = 'inline-block px-4 py-1.5 rounded-full text-base font-black text-white bg-blue-600 shadow-md';
+                 warningEl.classList.remove('hidden');
+                 warningEl.innerText = '⚠️ 你係「白板」！你咩題目都冇！觀察其他人畫緊咩，扮識畫，千祈唔好畀人發現你咩都唔知！';
+                 wordEl.className = 'text-2xl sm:text-3xl font-black text-blue-600 px-6 py-1 border-2 border-blue-200 rounded-xl bg-blue-50 tracking-widest shadow-inner';
+             } else {
                  badge.innerText = '🎨 真正藝術家 (Artist)';
                  badge.className = 'inline-block px-4 py-1.5 rounded-full text-base font-black text-white bg-green-500 shadow-md';
                  warningEl.classList.add('hidden');
                  wordEl.className = 'text-2xl sm:text-3xl font-black text-indigo-600 px-6 py-1 border-2 border-indigo-100 rounded-xl bg-indigo-50 tracking-widest shadow-inner';
              }
          
-             const searchIframe = document.getElementById('reveal-search-iframe');
              const searchLink = document.getElementById('reveal-search-link');
              const encodedWord = encodeURIComponent(player.word);
-             searchIframe.src = `https://www.google.com/search?q=${encodedWord}&igu=1`;
-             searchLink.href = `https://www.google.com/search?q=${encodedWord}`;
+             searchLink.href = `https://www.google.com/search?q=${encodedWord}&tbm=isch`;
          
              showScreen('reveal');
          }
@@ -737,9 +753,8 @@
              document.getElementById('pass-draw-player-name').style.color = nextPlayer.color;
              document.getElementById('pass-draw-btn-name').innerText = nextPlayer.name;
              
-             // 🎲 處理突發任務
              const taskContainer = document.getElementById('chaos-task-container');
-             if (config.isChaosMode && Math.random() > 0.4) { // 60% 機率觸發
+             if (config.isChaosMode && Math.random() > 0.4) { 
                  const randomTask = CHAOS_CHALLENGES[Math.floor(Math.random() * CHAOS_CHALLENGES.length)];
                  document.getElementById('chaos-task-text').innerText = randomTask;
                  taskContainer.classList.remove('hidden');
@@ -781,7 +796,6 @@
              
              gameState.hasDrawnThisTurn = false;
          
-             // 預設重設為實色筆 & 中等粗度
              setBrushSize(8, document.querySelectorAll('.brush-btn')[1]);
              setBrushType('solid', document.querySelectorAll('.tool-btn')[0]);
          }
@@ -947,53 +961,77 @@
              document.querySelectorAll('.confetti').forEach(e => e.remove());
          }
          
-         // 🎬 過程重溫 (Timelapse Replay) 邏輯
+         // 🌟 收復高難度 Bug: 拋棄傳統容易被 iPad 鎖死的大量 setTimeout，重構為遊戲專用 requestAnimationFrame 動態流暢重播
          function startReplay() {
-             // 清除現有動畫
+             if (replayAnimationFrameId) cancelAnimationFrame(replayAnimationFrameId);
              replayTimeoutIds.forEach(id => clearTimeout(id));
              replayTimeoutIds = [];
              
-             const imgEl = document.getElementById('final-drawing-img');
              const repCanvas = document.getElementById('replay-canvas');
              
-             repCanvas.width = canvas.width; repCanvas.height = canvas.height;
-             imgEl.classList.add('hidden'); repCanvas.classList.remove('hidden');
+             // 完美契合原本畫布尺寸
+             repCanvas.width = canvas.width; 
+             repCanvas.height = canvas.height;
+             repCanvas.classList.remove('hidden'); // 直接顯示最上層覆蓋
              
              ctxReplay.clearRect(0, 0, repCanvas.width, repCanvas.height);
              fillCanvasBackground(ctxReplay, repCanvas.width, repCanvas.height);
          
-             let delay = 0;
-             const drawSpeed = 10; // ms per point
+             if (gameState.strokes.length === 0) {
+                 let tEmpty = setTimeout(() => repCanvas.classList.add('hidden'), 1000);
+                 replayTimeoutIds.push(tEmpty);
+                 return;
+             }
+         
+             let strokeIdx = 0;
+             let pointIdx = 0;
              
-             gameState.strokes.forEach(stroke => {
-                 if (stroke.points.length === 0) return;
+             function animateFrames() {
+                 let pointsRenderedThisFrame = 0;
+                 const speedFactor = 4; // 每幀畫多少點（數值大 = 播放速度快）
                  
-                 // 設定畫筆樣式
-                 let t1 = setTimeout(() => {
+                 while (pointsRenderedThisFrame < speedFactor && strokeIdx < gameState.strokes.length) {
+                     let stroke = gameState.strokes[strokeIdx];
+                     if (stroke.points.length === 0) {
+                         strokeIdx++; pointIdx = 0; continue;
+                     }
+                     
                      applyBrushStyle(ctxReplay, stroke);
-                     ctxReplay.beginPath();
-                     ctxReplay.moveTo(stroke.points[0].x, stroke.points[0].y);
-                 }, delay);
-                 replayTimeoutIds.push(t1);
-         
-                 stroke.points.forEach((point, i) => {
-                     if (i === 0) return;
-                     delay += drawSpeed;
-                     let t2 = setTimeout(() => {
-                         ctxReplay.lineTo(point.x, point.y);
+                     
+                     if (pointIdx === 0) {
+                         ctxReplay.beginPath();
+                         ctxReplay.moveTo(stroke.points[0].x, stroke.points[0].y);
+                         ctxReplay.lineTo(stroke.points[0].x, stroke.points[0].y);
                          ctxReplay.stroke();
-                     }, delay);
-                     replayTimeoutIds.push(t2);
-                 });
-                 delay += 200; // 筆畫之間停頓
-             });
-         
-             // 動畫播完後切換回靜態圖
-             let tEnd = setTimeout(() => {
-                 repCanvas.classList.add('hidden');
-                 imgEl.classList.remove('hidden');
-             }, delay + 1000);
-             replayTimeoutIds.push(tEnd);
+                         pointIdx = 1;
+                         pointsRenderedThisFrame++;
+                     } else if (pointIdx < stroke.points.length) {
+                         ctxReplay.beginPath();
+                         ctxReplay.moveTo(stroke.points[pointIdx - 1].x, stroke.points[pointIdx - 1].y);
+                         ctxReplay.lineTo(stroke.points[pointIdx].x, stroke.points[pointIdx].y);
+                         ctxReplay.stroke();
+                         pointIdx++;
+                         pointsRenderedThisFrame++;
+                     }
+                     
+                     if (pointIdx >= stroke.points.length) {
+                         strokeIdx++;
+                         pointIdx = 0;
+                     }
+                 }
+                 
+                 if (strokeIdx < gameState.strokes.length) {
+                     replayAnimationFrameId = requestAnimationFrame(animateFrames);
+                 } else {
+                     // 播完後停留 1.5 秒自動收回重播畫板，顯現大圖
+                     let tEnd = setTimeout(() => {
+                         repCanvas.classList.add('hidden');
+                     }, 1500);
+                     replayTimeoutIds.push(tEnd);
+                 }
+             }
+             
+             replayAnimationFrameId = requestAnimationFrame(animateFrames);
          }
          
          function createConfetti() {
@@ -1012,9 +1050,10 @@
          
          function revealImposters() {
              document.getElementById('btn-reveal-imposter').classList.add('hidden');
-             document.getElementById('btn-replay').classList.add('hidden'); // 隱藏重播按鈕
+             document.getElementById('btn-replay').classList.add('hidden'); 
              
-             // 如果播緊重播，中斷佢
+             // 🌟 安全切換：開估時如果還在重播，強制切斷動畫
+             if (replayAnimationFrameId) cancelAnimationFrame(replayAnimationFrameId);
              replayTimeoutIds.forEach(id => clearTimeout(id));
              document.getElementById('replay-canvas').classList.add('hidden');
              document.getElementById('final-drawing-img').classList.remove('hidden');
@@ -1041,6 +1080,7 @@
          
          function resetGame() { 
              clearInterval(turnTimer);
+             if (replayAnimationFrameId) cancelAnimationFrame(replayAnimationFrameId);
              replayTimeoutIds.forEach(id => clearTimeout(id));
              ctx.clearRect(0, 0, canvas.width, canvas.height); 
              document.querySelectorAll('.confetti').forEach(e => e.remove());
@@ -1052,7 +1092,7 @@
              if (GOOGLE_SHEET_CSV_URL && GOOGLE_SHEET_CSV_URL.startsWith('http')) {
                  fetchSheetWords(GOOGLE_SHEET_CSV_URL);
              }
-             setTheme('white', document.querySelectorAll('.theme-btn')[0]); // 初始化材質
+             setTheme('white', document.querySelectorAll('.theme-btn')[0]); 
          });
          
          document.body.addEventListener('touchmove', function(e) { if(screens.draw.classList.contains('active')){ e.preventDefault(); } }, { passive: false });
