@@ -6,14 +6,14 @@
     <title>畫畫臥底大挑戰 - 廣東話版 iPad 派對遊戲</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght=400;700;900&display=swap');
 
         body {
             font-family: 'Noto Sans HK', sans-serif;
             background-color: #f3f4f6; /* Tailwind gray-100 */
             touch-action: manipulation; /* 改善觸控體驗，防止雙擊放大 */
-            overflow: hidden; /* 防止成個頁面碌嚟碌去 */
-            user-select: none; /* 防止用家唔小心反白啲字 */
+            overflow: hidden; /* 防止整個頁面亂滾動 */
+            user-select: none; /* 防止用家唔小心反白文字 */
             -webkit-user-select: none;
         }
 
@@ -22,7 +22,6 @@
             display: none;
             width: 100%;
             height: 100vh;
-            overflow-y: auto;
         }
         .screen.active {
             display: flex;
@@ -30,13 +29,12 @@
 
         /* 畫板專屬設定 */
         #canvas-container {
-            touch-action: none; /* 極度重要：防止喺畫板上面畫嘢嗰陣觸發 iPad 嘅手勢 (例如拖曳頁面) */
+            touch-action: none; /* 極度重要：防止喺畫板上面畫嘢嗰陣觸發 iPad 嘅原生手勢 */
             background-color: white;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
-            border-radius: 1rem;
+            border-radius: 1.5rem;
             position: relative;
             flex-grow: 1;
-            margin-bottom: 1rem;
             border: 4px solid #e5e7eb;
             overflow: hidden;
         }
@@ -51,8 +49,8 @@
         /* 自訂顏色選擇器嘅外觀 */
         .color-badge {
             display: inline-block;
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             border: 2px solid white;
             box-shadow: 0 0 5px rgba(0,0,0,0.3);
@@ -62,7 +60,7 @@
 
         /* 彈出警告框嘅動畫 */
         @keyframes popIn {
-            0% { transform: scale(0.8); opacity: 0; }
+            0 { transform: scale(0.8); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
         .animate-pop {
@@ -72,81 +70,95 @@
 </head>
 <body class="text-gray-800">
 
-    <div id="screen-setup" class="screen active flex-col items-center justify-start py-8 px-4 sm:px-8 bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div class="max-w-3xl w-full bg-white rounded-3xl shadow-xl p-6 sm:p-10">
-            <h1 class="text-4xl sm:text-5xl font-black text-center text-indigo-600 mb-6 tracking-tight">🕵️‍♂️ 畫畫臥底大挑戰 🎨</h1>
+    <div id="screen-setup" class="screen active flex-col items-center justify-start py-6 px-4 sm:px-8 bg-gradient-to-br from-blue-50 to-indigo-100 overflow-y-auto">
+        <div class="max-w-[95%] w-full bg-white rounded-3xl shadow-xl p-6 sm:p-10 my-auto">
+            <h1 class="text-4xl sm:text-5xl font-black text-center text-indigo-600 mb-4 tracking-tight">🕵️‍♂️ 畫畫臥底大挑戰 🎨</h1>
             
-            <div class="bg-indigo-50 rounded-2xl p-6 mb-8 text-sm sm:text-base text-gray-700 leading-relaxed border border-indigo-100 shadow-inner">
-                <h2 class="text-2xl font-bold text-indigo-800 mb-4 flex items-center">
-                    <span class="mr-2">📖</span> 遊戲玩法及規則 (點樣玩？)
-                </h2>
-                <p class="mb-3">歡迎嚟到專為 iPad 同埋平板電腦設計嘅《畫畫臥底大挑戰》！呢個遊戲考驗大家嘅畫功、默契、同埋演技。啱晒一大班朋友喺 Party 度玩！</p>
-                <ul class="list-disc pl-6 space-y-2 mb-4">
-                    <li><strong>身份分配：</strong> 遊戲開始時，大家輪流傳遞 iPad。大部份玩家會成為「真正藝術家」(平民)，佢哋會收到一個<strong>【真實題目】</strong>(例如：蘋果)。而少數玩家會成為「臥底」，佢哋只會收到一個<strong>【相似嘅假題目】</strong>(例如：番茄)。</li>
-                    <li><strong>畫畫環節：</strong> 每位玩家會分派到一種專屬顏色。大家輪流喺同一個畫板上面畫一筆 (或者自由畫，視乎模式)，嘗試畫出自己收到嘅題目。</li>
-                    <li><strong>一筆過模式 (One-Line Mode)：</strong> 如果開咗呢個模式，每位玩家每次輪到佢嗰陣，<strong>只可以畫連續嘅一條線</strong> (手指一離開螢幕就當畫完)。呢個模式會令遊戲更加刺激同搞笑！</li>
-                    <li><strong>捉鬼環節：</strong> 所有玩家畫完指定圈數之後，大家就要睇住幅「曠世巨作」，一齊討論同埋投票搵出邊個係畫緊唔同嘢嘅「臥底」！</li>
-                    <li><strong>臥底反擊：</strong> 就算臥底被捉到，如果佢能夠估得中平民嘅【真實題目】係咩，臥底都可以反敗為勝！</li>
-                </ul>
-                <p class="text-indigo-600 font-bold mt-4">準備好未？揀好人數同設定就可以開始啦！(建議 4-8 人遊玩效果最佳)</p>
+            <div id="word-bank-counter" class="max-w-xl mx-auto bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl py-3 px-6 mb-8 text-center shadow-inner flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-sm font-bold text-indigo-700">
+                <div class="flex items-center"><span class="text-lg mr-1.5">📊</span> 當前總詞庫：<span id="count-total" class="text-xl font-black text-indigo-600 mx-1">0</span> 組</div>
+                <div class="hidden sm:block text-indigo-300">|</div>
+                <div class="flex items-center text-gray-500 font-semibold text-xs sm:text-sm">
+                    內置詞庫：<span id="count-local" class="text-gray-700 font-bold ml-1 mr-3">0</span>
+                    雲端 Google Sheet：<span id="count-remote" class="text-emerald-600 font-bold ml-1">0</span>
+                </div>
             </div>
-
-            <div class="space-y-6">
-                <div class="flex flex-col sm:flex-row items-center justify-between bg-gray-50 p-4 rounded-xl border border-gray-200">
-                    <label class="text-lg font-bold text-gray-800 mb-2 sm:mb-0 flex items-center">
-                        👥 總玩家人數 (Player Count)
-                    </label>
-                    <div class="flex items-center space-x-4">
-                        <button onclick="adjustValue('players', -1)" class="w-12 h-12 rounded-full bg-red-100 text-red-600 font-bold text-xl hover:bg-red-200 active:bg-red-300 transition-colors shadow-sm">-</button>
-                        <span id="display-players" class="text-2xl font-black w-8 text-center">4</span>
-                        <button onclick="adjustValue('players', 1)" class="w-12 h-12 rounded-full bg-green-100 text-green-600 font-bold text-xl hover:bg-green-200 active:bg-green-300 transition-colors shadow-sm">+</button>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-5 bg-indigo-50 rounded-2xl p-6 text-sm sm:text-base text-gray-700 leading-relaxed border border-indigo-100 shadow-inner flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-indigo-800 mb-4 flex items-center">
+                            <span class="mr-2">📖</span> 遊戲玩法及規則
+                        </h2>
+                        <p class="mb-3 font-semibold">專為 iPad 同埋平板電腦設計！考驗大家嘅畫功、默契同演技。啱晒一大班朋友喺 Party 度玩！</p>
+                        <ul class="list-disc pl-5 space-y-2.5 text-sm">
+                            <li><strong>身份分配：</strong> 輪流傳遞 iPad。大部份玩家係「真正藝術家」(平民)，收到<strong>【真實題目】</strong>；少數玩家係「臥底」，收到<strong>【相似假題目】</strong>。</li>
+                            <li><strong>畫畫環節：</strong> 每人分派專屬顏色。輪流喺同一個畫板上面畫畫，嘗試畫出自己收到嘅題目。</li>
+                            <li><strong>一筆過模式：</strong> 開啟後，每位玩家每次輪到佢嗰陣，<strong>只可以畫連續嘅一條線</strong> (手指離開螢幕即畫完)，更加刺激搞笑！</li>
+                            <li><strong>捉鬼與反擊：</strong> 畫完指定圈數後一齊投票搵臥底！臥底如果估中平民嘅真實題目，即可反敗為勝！</li>
+                        </ul>
                     </div>
+                    <p class="text-indigo-600 font-bold mt-4 border-t border-indigo-200/60 pt-3">💡 建議 4-8 人遊玩效果最佳！</p>
                 </div>
 
-                <div class="flex flex-col sm:flex-row items-center justify-between bg-gray-50 p-4 rounded-xl border border-gray-200">
-                    <div class="flex flex-col mb-2 sm:mb-0">
-                        <label class="text-lg font-bold text-gray-800 flex items-center">
-                            🦹‍♂️ 臥底人數 (Imposter Count)
-                        </label>
-                        <span class="text-xs text-red-500 font-semibold mt-1">*必須少過總人數嘅一半 (The smaller half)</span>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <button onclick="adjustValue('imposters', -1)" class="w-12 h-12 rounded-full bg-red-100 text-red-600 font-bold text-xl hover:bg-red-200 active:bg-red-300 transition-colors shadow-sm">-</button>
-                        <span id="display-imposters" class="text-2xl font-black w-8 text-center">1</span>
-                        <button onclick="adjustValue('imposters', 1)" class="w-12 h-12 rounded-full bg-green-100 text-green-600 font-bold text-xl hover:bg-green-200 active:bg-green-300 transition-colors shadow-sm">+</button>
-                    </div>
-                </div>
+                <div class="lg:col-span-7 space-y-5 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex flex-col sm:flex-row items-center justify-between bg-gray-50 p-4 rounded-xl border border-gray-200">
+                            <label class="text-lg font-bold text-gray-800 mb-2 sm:mb-0 flex items-center">
+                                👥 總玩家人數 (Player Count)
+                            </label>
+                            <div class="flex items-center space-x-4">
+                                <button onclick="adjustValue('players', -1)" class="w-12 h-12 rounded-full bg-red-100 text-red-600 font-bold text-xl hover:bg-red-200 active:bg-red-300 transition-colors shadow-sm">-</button>
+                                <span id="display-players" class="text-2xl font-black w-8 text-center">4</span>
+                                <button onclick="adjustValue('players', 1)" class="w-12 h-12 rounded-full bg-green-100 text-green-600 font-bold text-xl hover:bg-green-200 active:bg-green-300 transition-colors shadow-sm">+</button>
+                            </div>
+                        </div>
 
-                <div class="flex flex-col sm:flex-row items-center justify-between bg-gray-50 p-4 rounded-xl border border-gray-200">
-                    <div class="flex flex-col mb-2 sm:mb-0">
-                        <label class="text-lg font-bold text-gray-800 flex items-center">
-                            🔄 畫畫圈數 (Rounds)
-                        </label>
-                        <span class="text-xs text-gray-500 mt-1">每人可以畫幾多次？</span>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <button onclick="adjustValue('rounds', -1)" class="w-12 h-12 rounded-full bg-red-100 text-red-600 font-bold text-xl hover:bg-red-200 active:bg-red-300 transition-colors shadow-sm">-</button>
-                        <span id="display-rounds" class="text-2xl font-black w-8 text-center">2</span>
-                        <button onclick="adjustValue('rounds', 1)" class="w-12 h-12 rounded-full bg-green-100 text-green-600 font-bold text-xl hover:bg-green-200 active:bg-green-300 transition-colors shadow-sm">+</button>
-                    </div>
-                </div>
+                        <div class="flex flex-col sm:flex-row items-center justify-between bg-gray-50 p-4 rounded-xl border border-gray-200">
+                            <div class="flex flex-col mb-2 sm:mb-0">
+                                <label class="text-lg font-bold text-gray-800 flex items-center">
+                                    🦹‍♂️ 臥底人數 (Imposter Count)
+                                </label>
+                                <span class="text-xs text-red-500 font-semibold mt-1">*必須少過總人數嘅一半</span>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <button onclick="adjustValue('imposters', -1)" class="w-12 h-12 rounded-full bg-red-100 text-red-600 font-bold text-xl hover:bg-red-200 active:bg-red-300 transition-colors shadow-sm">-</button>
+                                <span id="display-imposters" class="text-2xl font-black w-8 text-center">1</span>
+                                <button onclick="adjustValue('imposters', 1)" class="w-12 h-12 rounded-full bg-green-100 text-green-600 font-bold text-xl hover:bg-green-200 active:bg-green-300 transition-colors shadow-sm">+</button>
+                            </div>
+                        </div>
 
-                <div class="flex items-center justify-between bg-purple-50 p-4 rounded-xl border border-purple-200 cursor-pointer" onclick="toggleOneLineMode()">
-                    <div class="flex flex-col">
-                        <label class="text-lg font-bold text-purple-900 cursor-pointer select-none">
-                            ✍️ 一筆過模式 (One-Line Mode)
-                        </label>
-                        <span class="text-xs text-purple-600 mt-1">每人每次只可以畫一條線</span>
-                    </div>
-                    <div class="relative inline-block w-16 h-8 align-middle select-none transition duration-200 ease-in">
-                        <input type="checkbox" name="toggle" id="toggle-one-line" class="toggle-checkbox absolute block w-8 h-8 rounded-full bg-white border-4 border-gray-300 appearance-none cursor-pointer transition-transform duration-300 ease-in-out z-10" style="top: 0; left: 0;"/>
-                        <label for="toggle-one-line" class="toggle-label block overflow-hidden h-8 rounded-full bg-gray-300 cursor-pointer"></label>
-                    </div>
-                </div>
+                        <div class="flex flex-col sm:flex-row items-center justify-between bg-gray-50 p-4 rounded-xl border border-gray-200">
+                            <div class="flex flex-col mb-2 sm:mb-0">
+                                <label class="text-lg font-bold text-gray-800 flex items-center">
+                                    🔄 畫畫圈數 (Rounds)
+                                </label>
+                                <span class="text-xs text-gray-500 mt-1">每人可以畫幾多次？</span>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <button onclick="adjustValue('rounds', -1)" class="w-12 h-12 rounded-full bg-red-100 text-red-600 font-bold text-xl hover:bg-red-200 active:bg-red-300 transition-colors shadow-sm">-</button>
+                                <span id="display-rounds" class="text-2xl font-black w-8 text-center">2</span>
+                                <button onclick="adjustValue('rounds', 1)" class="w-12 h-12 rounded-full bg-green-100 text-green-600 font-bold text-xl hover:bg-green-200 active:bg-green-300 transition-colors shadow-sm">+</button>
+                            </div>
+                        </div>
 
-                <button onclick="startGame()" class="w-full mt-8 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-black text-2xl py-5 rounded-2xl shadow-lg transform transition-transform active:scale-95">
-                    🚀 開始遊戲 (Start Game)
-                </button>
+                        <div class="flex items-center justify-between bg-purple-50 p-4 rounded-xl border border-purple-200 cursor-pointer" onclick="toggleOneLineMode()">
+                            <div class="flex flex-col">
+                                <label class="text-lg font-bold text-purple-900 cursor-pointer select-none">
+                                    ✍️ 一筆過模式 (One-Line Mode)
+                                </label>
+                                <span class="text-xs text-purple-600 mt-1">每人每次只可以畫一條連續嘅線</span>
+                            </div>
+                            <div class="relative inline-block w-16 h-8 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" name="toggle" id="toggle-one-line" class="toggle-checkbox absolute block w-8 h-8 rounded-full bg-white border-4 border-gray-300 appearance-none cursor-pointer transition-transform duration-300 ease-in-out z-10" style="top: 0; left: 0;"/>
+                                <label for="toggle-one-line" class="toggle-label block overflow-hidden h-8 rounded-full bg-gray-300 cursor-pointer"></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="startGame()" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-black text-2xl py-4.5 rounded-2xl shadow-lg transform transition-transform active:scale-95">
+                        🚀 開始遊戲 (Start Game)
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -162,56 +174,59 @@
         </button>
     </div>
 
-    <div id="screen-reveal" class="screen flex-col items-center justify-start py-6 px-4 bg-gray-50 text-center overflow-y-auto">
-        <div class="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-6 transform transition-all my-auto">
-            <h3 id="reveal-role-title" class="text-3xl font-bold mb-2 text-gray-800">你嘅身份係...</h3>
-            <div id="reveal-role-badge" class="inline-block px-6 py-2 rounded-full text-xl font-black mb-4 text-white bg-green-500 shadow-md">
+    <div id="screen-reveal" class="screen flex-col items-center justify-center p-6 bg-gray-50 text-center">
+        <div class="max-w-5xl w-full bg-white rounded-3xl shadow-2xl p-8 sm:p-14 transform transition-all">
+            <h3 id="reveal-role-title" class="text-3xl sm:text-4xl font-bold mb-4 text-gray-800">你嘅身份係...</h3>
+            <div id="reveal-role-badge" class="inline-block px-8 py-3 rounded-full text-2xl font-black mb-10 text-white bg-green-500 shadow-md">
                 平民 (Artist)
             </div>
             
-            <p class="text-gray-500 mb-1 font-bold">今局嘅題目係：</p>
-            <div id="reveal-word" class="text-4xl font-black text-indigo-600 mb-4 py-4 border-4 border-indigo-100 rounded-2xl bg-indigo-50 tracking-widest">
+            <p class="text-gray-400 text-lg mb-3 font-bold tracking-wide">今局嘅題目係：</p>
+            <div id="reveal-word" class="text-6xl sm:text-7xl font-black text-indigo-600 mb-12 py-10 border-4 border-indigo-100 rounded-3xl bg-indigo-50 tracking-widest max-w-2xl mx-auto shadow-inner">
                 蘋果
             </div>
 
-            <div class="w-full mb-4 text-left">
-                <p class="text-xs text-gray-500 mb-1 font-bold flex items-center justify-between px-1">
-                    <span>🔍 唔知係咩？睇下 Google 搜尋結果：</span>
-                    <a id="reveal-search-link" href="#" target="_blank" class="text-indigo-600 underline hover:text-indigo-800 font-black">在新分頁打開 ↗️</a>
-                </p>
-                <div class="w-full h-64 border-2 border-gray-200 rounded-xl overflow-hidden bg-gray-100 shadow-inner relative">
-                    <iframe id="reveal-search-iframe" src="" class="w-full h-full border-none"></iframe>
-                </div>
+            <div id="imposter-warning" class="hidden bg-red-100 text-red-700 p-5 rounded-2xl max-w-2xl mx-auto mb-10 font-bold text-base border border-red-200">
+                ⚠️ 記住！你係臥底！其他人畫緊嘅嘢同你唔同，試下憑直覺扮識畫，千祈唔好畀人識穿！
             </div>
 
-            <div id="imposter-warning" class="hidden bg-red-100 text-red-700 p-4 rounded-xl mb-4 font-bold text-sm">
-                ⚠️ 記住！你係臥底！其他人畫緊嘅嘢同你唔同，試下扮識畫，唔好畀人識穿！
-            </div>
-
-            <button onclick="nextPassOrStartDrawing()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold text-2xl py-5 rounded-2xl shadow-lg transform transition-transform active:scale-95 flex items-center justify-center">
+            <button onclick="nextPassOrStartDrawing()" class="w-full max-w-xl mx-auto bg-gray-800 hover:bg-gray-900 text-white font-bold text-2xl py-5 rounded-2xl shadow-lg transform transition-transform active:scale-95 flex items-center justify-center">
                 <span class="mr-2">🙈</span> 記低咗，隱藏並繼續
             </button>
         </div>
     </div>
 
-    <div id="screen-draw" class="screen flex-col p-4 sm:p-6 bg-gray-200">
-        <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-md mb-4 flex-shrink-0">
-            <div class="flex flex-col">
-                <span id="draw-round-info" class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">第 1 圈 / 共 2 圈</span>
-                <h2 id="draw-player-info" class="text-2xl sm:text-3xl font-black text-gray-800 flex items-center">
-                    <span id="current-color-badge" class="color-badge bg-red-500"></span> 輪到：玩家 1
-                </h2>
+    <div id="screen-draw" class="screen flex-col h-screen overflow-hidden p-3 sm:p-4 bg-gray-200">
+        <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center bg-white p-3 sm:p-4 rounded-2xl shadow-md mb-3 flex-shrink-0 gap-3">
+            <div class="flex items-center justify-between md:justify-start gap-4 flex-grow">
+                <div class="flex flex-col">
+                    <span id="draw-round-info" class="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider">第 1 圈 / 共 2 圈</span>
+                    <h2 id="draw-player-info" class="text-xl sm:text-2xl font-black text-gray-800 flex items-center mt-0.5">
+                        <span id="current-color-badge" class="color-badge bg-red-500"></span> 輪到：玩家 1
+                    </h2>
+                </div>
+                <div id="one-line-indicator" class="hidden px-3 py-1.5 bg-purple-100 text-purple-700 font-bold rounded-xl text-xs sm:text-sm border border-purple-200 shadow-sm flex items-center">
+                    <span class="mr-1">✍️</span> 一筆過模式生效
+                </div>
             </div>
-            <div id="one-line-indicator" class="hidden px-4 py-2 bg-purple-100 text-purple-700 font-bold rounded-xl text-sm border border-purple-200 shadow-sm flex items-center">
-                <span class="mr-1">✍️</span> 一筆過模式生效中
+            
+            <div class="flex items-center gap-3 flex-shrink-0">
+                <button onclick="undoLastStroke()" id="btn-undo" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-base py-3 px-5 rounded-xl shadow-sm border border-gray-300 flex items-center justify-center active:bg-gray-300 transition-colors">
+                    <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                    重做 (Undo)
+                </button>
+                <button onclick="finishDrawingTurn()" id="btn-done" class="bg-blue-600 hover:bg-blue-700 text-white font-black text-base py-3 px-6 rounded-xl shadow-md flex items-center justify-center active:bg-blue-800 transition-colors">
+                    <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    我畫完啦 (Done)
+                </button>
             </div>
         </div>
 
-        <div id="canvas-container">
+        <div id="canvas-container" class="mb-0 flex-1">
             <canvas id="game-canvas"></canvas>
             
             <div id="canvas-overlay-msg" class="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-10 hidden">
-                <div class="bg-gray-900 text-white px-8 py-6 rounded-3xl shadow-2xl text-center transform scale-110">
+                <div class="bg-gray-900 text-white px-8 py-6 rounded-3xl shadow-2xl text-center transform scale-105">
                     <p id="overlay-text" class="text-2xl font-bold mb-4">畫完啦！</p>
                     <button onclick="passTurnDuringDrawing()" class="bg-green-500 hover:bg-green-400 text-gray-900 font-black text-xl py-3 px-8 rounded-full shadow-lg">
                         傳畀下一位 👉
@@ -219,25 +234,14 @@
                 </div>
             </div>
         </div>
-
-        <div class="flex justify-between items-center flex-shrink-0 gap-4">
-            <button onclick="undoLastStroke()" id="btn-undo" class="flex-1 bg-white hover:bg-gray-50 text-gray-700 font-bold text-xl py-4 rounded-2xl shadow-md border-2 border-gray-200 flex items-center justify-center active:bg-gray-100 transition-colors">
-                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
-                重做 (Undo)
-            </button>
-            <button onclick="finishDrawingTurn()" id="btn-done" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black text-xl py-4 rounded-2xl shadow-lg flex items-center justify-center active:bg-blue-800 transition-colors">
-                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                我畫完啦 (Done)
-            </button>
-        </div>
     </div>
 
-    <div id="screen-result" class="screen flex-col items-center p-4 sm:p-8 bg-gray-900 text-white">
+    <div id="screen-result" class="screen flex-col items-center p-4 sm:p-8 bg-gray-900 text-white overflow-y-auto">
         <h2 class="text-4xl font-black text-yellow-400 mb-2 mt-4 text-center">🎨 曠世巨作完成！</h2>
-        <p class="text-xl text-gray-300 mb-6 text-center">大家一齊討論下，邊個畫啲嘢九唔搭八？邊個係臥底？</p>
+        <p class="text-xl text-gray-300 mb-4 text-center">大家一齊討論下，邊個畫啲嘢九唔搭八？邊個係臥底？</p>
 
-        <div class="w-full max-w-2xl bg-white rounded-2xl p-2 mb-8 shadow-2xl">
-            <img id="final-drawing-img" src="" alt="最終畫作" class="w-full h-auto rounded-xl border-4 border-gray-200">
+        <div class="w-full max-w-4xl bg-white rounded-2xl p-2 mb-6 shadow-2xl flex justify-center items-center">
+            <img id="final-drawing-img" src="" alt="最終畫作" class="max-h-[55vh] w-auto object-contain rounded-xl border-4 border-gray-200 bg-white">
         </div>
 
         <button id="btn-reveal-imposter" onclick="revealImposters()" class="w-full max-w-md bg-red-600 hover:bg-red-700 text-white font-black text-2xl py-5 rounded-full shadow-lg transform transition-transform active:scale-95 mb-6">
@@ -246,8 +250,7 @@
 
         <div id="imposter-reveal-section" class="w-full max-w-2xl hidden flex-col items-center animate-pop">
             <h3 class="text-3xl font-bold mb-6 text-red-400">🔪 臥底名單：</h3>
-            <div id="imposter-list" class="flex flex-wrap justify-center gap-4 mb-8">
-                </div>
+            <div id="imposter-list" class="flex flex-wrap justify-center gap-4 mb-8"></div>
             
             <div class="bg-gray-800 p-6 rounded-2xl w-full text-center border border-gray-700 mb-8">
                 <p class="text-gray-400 mb-2 font-bold">平民嘅【真實題目】係：</p>
@@ -256,7 +259,7 @@
                 <p id="final-fake-word" class="text-3xl font-bold text-red-400">番茄</p>
             </div>
 
-            <button onclick="resetGame()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-2xl py-4 px-12 rounded-full shadow-lg transform transition-transform active:scale-95">
+            <button onclick="resetGame()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-2xl py-4 px-12 rounded-full shadow-lg transform transition-transform active:scale-95 mb-6">
                 🔄 再玩一次 (Play Again)
             </button>
         </div>
@@ -281,18 +284,12 @@
         // =========================================================================
         let GOOGLE_SHEET_CSV_URL = "__GOOGLE_SHEET_CSV_URL__"; 
         
-        // 防禦性代碼：如果未經 CI 替換（例如本地直接開檔案），自動清空避免出事
         if (GOOGLE_SHEET_CSV_URL.startsWith("__") && GOOGLE_SHEET_CSV_URL.endsWith("__")) {
             GOOGLE_SHEET_CSV_URL = "";
         }
         // =========================================================================
 
-        /**
-         * 大量廣東話/香港地道詞庫 (Word Bank) - 極度擴充版 (>600組)
-         * 陣列格式：[平民真實題目, 臥底假題目]
-         */
         const WORD_BANK = [
-            // 食物及飲品類 - 經典美食 (Food & Drinks)
             ["蘋果", "番茄"], ["燒賣", "魚蛋"], ["奶茶", "咖啡"], ["蛋撻", "菠蘿包"],
             ["叉燒", "燒肉"], ["腸粉", "蘿蔔糕"], ["蝦餃", "粉果"], ["凍檸茶", "熱檸水"],
             ["公仔麵", "烏冬"], ["漢堡包", "熱狗"], ["薯條", "薯餅"], ["西多士", "三文治"],
@@ -307,8 +304,6 @@
             ["盆菜", "佛跳牆"], ["水餃", "煎餃"], ["小籠包", "生煎包"], ["月餅", "湯圓"], 
             ["糭", "年糕"], ["芋頭糕", "馬蹄糕"], ["豬仔包", "奶油豬"], ["麥當勞", "肯德基"], 
             ["茶餐廳", "大牌檔"], ["冰室", "快餐店"],
-            
-            // 食物及飲品類 - 蔬果肉類與零食
             ["士多啤梨", "車厘子"], ["西瓜", "蜜瓜"], ["香蕉", "大蕉"], ["雪梨", "水蜜桃"], 
             ["橙", "柚子"], ["芒果", "木瓜"], ["奇異果", "火龍果"], ["提子", "藍莓"], 
             ["榴槤", "大樹菠蘿"], ["番茄", "紅蘿蔔"], ["白菜", "菜心"], ["西蘭花", "椰菜花"], 
@@ -319,8 +314,6 @@
             ["爆谷", "棉花糖"], ["花生", "開心果"], ["杏仁", "核桃"], ["瓜子", "栗子"], 
             ["蜜糖", "果醬"], ["牛油", "芝士"], ["豉油", "麻油"], ["鹽", "糖"], 
             ["辣椒醬", "番茄醬"], ["咖喱", "沙茶醬"], ["即食麵", "杯麵"], ["罐頭", "火腿"],
-
-            // 交通及地點 (Transport & Places)
             ["的士", "小巴"], ["港鐵", "巴士"], ["渡海小輪", "街渡"], ["電車", "輕鐵"],
             ["旺角", "深水埗"], ["尖沙咀", "銅鑼灣"], ["中環", "金鐘"], ["大嶼山", "長洲"],
             ["維多利亞港", "城門河"], ["海洋公園", "迪士尼"], ["機場", "高鐵站"], ["茶餐廳", "大牌檔"],
@@ -336,8 +329,6 @@
             ["美容院", "髮型屋"], ["商場", "百貨公司"], ["停車場", "油站"], ["天橋", "隧道"], 
             ["馬路", "行人路"], ["斑馬線", "紅綠燈"], ["碼頭", "巴士站"], ["地鐵站", "火車站"], 
             ["長城", "金字塔"], ["巴黎鐵塔", "自由神像"], ["富士山", "大峽谷"],
-
-            // 日常用品、科技及樂器 (Items, Tech & Instruments)
             ["八達通", "信用卡"], ["冷氣機", "風扇"], ["智能手機", "平板電腦"], ["身份證", "護照"],
             ["手錶", "鬧鐘"], ["電視", "電腦"], ["雪櫃", "微波爐"], ["雨傘", "雨衣"],
             ["眼鏡", "隱形眼鏡"], ["口罩", "防毒面具"], ["鎖匙", "密碼鎖"], ["銀包", "手袋"],
@@ -354,9 +345,7 @@
             ["擦膠", "塗改液"], ["間尺", "圓規"], ["螢光筆", "箱頭筆"], ["泥膠", "積木"], 
             ["啤牌", "麻雀"], ["骰仔", "籌碼"], ["棋盤", "拼圖"], ["結他", "小提琴"], 
             ["鋼琴", "電子琴"], ["鼓", "鈸"], ["笛", "口琴"], ["口罩", "眼罩"], 
-
-            // 動物及昆蟲 (Animals & Insects)
-            ["貓", "狗"], ["獅子", "老虎"], ["熊親", "北極熊"], ["企鵝", "海豚"],
+            ["貓", "狗"], ["獅子", "老虎"], ["熊貓", "北極熊"], ["企鵝", "海豚"],
             ["豬", "牛"], ["馬", "羊"], ["老鼠", "倉鼠"], ["雀仔", "蝙蝠"],
             ["蜜蜂", "蝴蝶"], ["螞蟻", "蜘蛛"], ["蚊", "蒼蠅"], ["蟑螂", "壁虎"], 
             ["蛇", "蚯蚓"], ["青蛙", "蟾蜍"], ["烏龜", "甲魚"], ["鱷魚", "恐龍"], 
@@ -368,8 +357,6 @@
             ["蝸牛", "蛞蝓"], ["黑熊", "棕熊"], ["水牛", "黃牛"], ["駱駝", "羊駝"], 
             ["刺蝟", "豪豬"], ["海豹", "海象"], ["企鵝", "海鷗"], ["鴕鳥", "火烈鳥"], 
             ["青竹蛇", "眼鏡蛇"], ["草泥馬", "斑馬"], ["壁虎", "蜥蜴"], ["變色龍", "恐龍"],
-
-            // 衣服服飾與身體部位 (Clothing & Body)
             ["T恤", "恤衫"], ["牛仔褲", "西褲"], ["短褲", "長褲"], ["裙", "連身裙"], 
             ["外套", "冷衫"], ["羽絨", "風褸"], ["西裝", "燕尾服"], ["校服", "運動服"], 
             ["睡衣", "泳衣"], ["內衣", "底褲"], ["襪", "絲襪"], ["波鞋", "皮鞋"], 
@@ -382,8 +369,6 @@
             ["額頭", "面珠墩"], ["眼", "眉毛"], ["耳仔", "鼻"], ["口", "唇"], 
             ["牙齒", "舌頭"], ["頭髮", "鬍鬚"], ["指甲", "皮膚"], ["骨", "肉"], 
             ["血管", "神經"], ["心臟", "肺"], ["胃", "腸"], ["大腦", "脊髓"], 
-
-            // 職業、人物與動作 (Roles, Jobs & Actions)
             ["警察", "保安"], ["醫生", "護士"], ["老師", "校長"], ["司機", "車長"],
             ["老闆", "打工仔"], ["YouTuber", "明星"], ["學生", "考生"], ["外賣員", "速遞員"],
             ["消防員", "救護員"], ["律師", "法官"], ["工程師", "建築師"], ["廚師", "侍應"], 
@@ -404,8 +389,6 @@
             ["加", "減"], ["乘", "除"], ["愛", "恨"], 
             ["開心", "傷心"], ["嬲", "驚"], ["悶", "煩"], ["成功", "失敗"], 
             ["希望", "絕望"], ["生", "死"], ["夢想", "現實"], ["過去", "未來"],
-            
-            // 家居環境與建築 (Home & Environment)
             ["升降機", "扶手電梯"], ["樓梯", "走廊"], ["天台", "露台"], ["花園", "車房"], 
             ["大堂", "保安亭"], ["信箱", "垃圾房"], ["會所", "泳池"], ["更衣室", "洗手間"], 
             ["廁所", "浴室"], ["廚房", "客廳"], ["睡房", "書房"], ["飯廳", "雜物房"], 
@@ -413,21 +396,15 @@
             ["被", "枕頭"], ["床單", "被袋"], ["窗簾", "地毯"], ["垃圾桶", "回收箱"], 
             ["花樽", "盆栽"], ["相架", "掛畫"], ["時鐘", "日曆"], ["鏡", "梳"], 
             ["化妝枱", "書枱"], ["電腦枱", "餐枱"], ["摺櫈", "吧櫈"], ["門", "窗"],
-
-            // 香港地標與文化 (HK Landmarks & Culture)
             ["尖沙咀鐘樓", "大三巴牌坊"], ["黃大仙祠", "車公廟"], ["青馬大橋", "昂船洲大橋"], 
             ["天壇大佛", "金紫荊廣場"], ["太空館", "科學館"], ["獅子山", "太平山"],
             ["大館", "PMQ元創方"], ["廟街", "女人街"], ["蘭桂坊", "蘇豪區"],
             ["菠蘿油", "豬扒包"], ["西多士", "法式吐司"], ["絲襪奶茶", "黑牛"],
             ["格仔餅", "雞蛋仔"], ["白糖糕", "砵仔糕"], ["老婆餅", "皮蛋酥"],
-
-            // 品牌、人物與流行文化 (Brands, Pop Culture & Visuals)
             ["周星馳", "劉德華"], ["李小龍", "成龍"], ["葉問", "黃飛鴻"],
             ["多啦A夢", "老夫子"], ["高達", "變形金剛"], ["比卡超", "數碼暴龍"],
             ["超級馬里奧", "超音鼠"], ["蝙蝠俠", "蜘蛛俠"], ["鐵甲奇俠 (Iron Man)", "美國隊長"],
             ["蘋果 (Apple)", "三星 (Samsung)"], ["Nike", "Adidas"], ["麥當勞叔叔", "肯德基爺爺"],
-
-            // 搞怪廣東話俗語 (可畫出嚟的) (Visual Slang)
             ["炒魷魚", "燒豆腐"], ["放飛機", "擲紙飛機"], ["戴綠帽", "買冷帽"],
             ["食死貓", "餵流浪貓"], ["扯線木偶", "稻草人"], ["洗黑錢", "洗衫"],
             ["一頭霧水", "滿頭大汗"], ["吹水", "飲水"], ["捉黃腳鱲", "捉雞"],
@@ -437,7 +414,7 @@
         let customWordBank = [];
 
         const PLAYER_COLORS = [
-            '#FF3B30', '#007AFF', '#4CD964', '#FF9500', '#5856D6',
+            '#FF3B30', '#007AFF', '#4CD964', '#FF9500', '#5856D6', 
             '#FF2D55', '#5AC8FA', '#FFCC00', '#8E8E93', '#A2845E'
         ];
 
@@ -449,15 +426,15 @@
         };
 
         let gameState = {
-            roles: [],
-            currentSetupIndex: 0,
-            currentTurnIndex: 0,
-            totalTurns: 0,
-            strokes: [],
-            currentStroke: null,
+            roles: [],              
+            currentSetupIndex: 0,   
+            currentTurnIndex: 0,    
+            totalTurns: 0,          
+            strokes: [],            
+            currentStroke: null,    
             hasDrawnThisTurn: false,
-            realWord: "",
-            fakeWord: ""
+            realWord: "",           
+            fakeWord: ""            
         };
 
         const screens = {
@@ -473,6 +450,17 @@
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
+
+        // 🌟 新增：更新詞庫計數機功能
+        function updateWordCounter() {
+            const localCount = WORD_BANK.length;
+            const remoteCount = customWordBank.length;
+            const totalCount = localCount + remoteCount;
+
+            document.getElementById('count-total').innerText = totalCount;
+            document.getElementById('count-local').innerText = localCount;
+            document.getElementById('count-remote').innerText = remoteCount;
+        }
 
         async function fetchSheetWords(autoUrl = null) {
             const urlInput = autoUrl || document.getElementById('sheet-url-input').value.trim();
@@ -490,20 +478,19 @@
 
             statusEl.classList.remove('hidden');
             statusEl.innerText = "⏳ 努力載入緊...";
-            statusEl.className = "text-sm mt-3 font-bold text-blue-600";
+            statusEl.className = "text-xs mt-1.5 font-bold text-blue-600";
 
             try {
                 const response = await fetch(urlInput);
                 if (!response.ok) throw new Error('網絡請求失敗');
-                
                 const text = await response.text();
                 parseCSV(text, statusEl);
             } catch (error) {
                 console.error(error);
-                statusEl.innerText = "❌ 載入失敗！可能係連結唔啱，或者未設定公開。";
-                statusEl.className = "text-sm mt-3 font-bold text-red-600";
+                statusEl.innerText = "❌ 載入失敗！可能連結錯咗，或者未設公開。";
+                statusEl.className = "text-xs mt-1.5 font-bold text-red-600";
                 if (!autoUrl) {
-                    showAlert("無法載入資料 (CORS 或網絡錯誤)！\n請確保檔案已正確設定為「發佈到網絡 (Publish to web) -> CSV」。");
+                    showAlert("無法載入資料 (CORS 或網絡錯誤)！\n請確保檔案已正確設定為「發佈到網絡 -> CSV」。");
                 }
             }
         }
@@ -529,12 +516,13 @@
 
             if (newWords.length > 0) {
                 customWordBank = newWords;
-                statusEl.innerText = `✅ 成功載入 ${newWords.length} 組自訂題目！\n今局會將自訂題目同預設題目混合一齊抽。`;
-                statusEl.className = "text-sm mt-3 font-bold text-green-600";
+                statusEl.innerText = `✅ 成功載入 ${newWords.length} 組自訂題目！已加入隨機詞庫。`;
+                statusEl.className = "text-xs mt-1.5 font-bold text-green-600";
+                updateWordCounter(); // 🌟 讀取成功即時刷新計數機
             } else {
-                statusEl.innerText = "⚠️ 搵唔到有效嘅題目。";
-                statusEl.className = "text-sm mt-3 font-bold text-yellow-600";
-                showAlert("喺 CSV 入面搵唔到有效嘅題目！\n請確保格式係 A欄:平民題目, B欄:臥底題目。");
+                statusEl.innerText = "⚠️ 搵唔到有效題目。";
+                statusEl.className = "text-xs mt-1.5 font-bold text-yellow-600";
+                showAlert("CSV 入面搵唔到有效嘅題目！格式需為 A欄:平民題目, B欄:臥底題目。");
             }
         }
         
@@ -605,15 +593,11 @@
             }
         }
 
-        /**
-         * 開始遊戲：隨機打散分配角色，百分之百隨機互換 A/B 欄目身份
-         */
         function startGame() {
             const combinedBank = customWordBank.length > 0 ? [...customWordBank, ...WORD_BANK] : WORD_BANK;
             const randomPairIndex = Math.floor(Math.random() * combinedBank.length);
             const pair = combinedBank[randomPairIndex];
             
-            // 🎲 隨機交叉配置！徹底擺脫「A欄一定是平民、B欄一定是臥底」嘅限制
             if (Math.random() > 0.5) {
                 gameState.realWord = pair[0];
                 gameState.fakeWord = pair[1];
@@ -657,37 +641,26 @@
             document.getElementById('pass-btn-name').innerText = player.name;
         }
 
-        /**
-         * 顯示當前玩家角色，同時更新 iframe 內嵌 Google 搜尋內容
-         */
         function showRole() {
             const player = gameState.roles[gameState.currentSetupIndex];
-            
             const badge = document.getElementById('reveal-role-badge');
             const wordEl = document.getElementById('reveal-word');
             const warningEl = document.getElementById('imposter-warning');
             const titleEl = document.getElementById('reveal-role-title');
-            const iframeEl = document.getElementById('reveal-search-iframe');
-            const searchLinkEl = document.getElementById('reveal-search-link');
             
             titleEl.innerText = `${player.name}，你嘅身份係...`;
             wordEl.innerText = player.word;
 
-            // 🔍 動態更新 Google Search Iframe 及其備用外部連結
-            const encodedWord = encodeURIComponent(player.word);
-            iframeEl.src = `https://www.google.com/search?q=${encodedWord}&igu=1`;
-            searchLinkEl.href = `https://www.google.com/search?q=${encodedWord}`;
-
             if (player.role === '臥底') {
                 badge.innerText = '🕵️‍♂️ 畫畫臥底 (Imposter)';
-                badge.className = 'inline-block px-6 py-2 rounded-full text-xl font-black mb-4 text-white bg-red-600 shadow-md';
+                badge.className = 'inline-block px-8 py-3 rounded-full text-2xl font-black mb-10 text-white bg-red-600 shadow-md';
                 warningEl.classList.remove('hidden');
                 wordEl.classList.replace('text-indigo-600', 'text-red-600');
                 wordEl.classList.replace('border-indigo-100', 'border-red-200');
                 wordEl.classList.replace('bg-indigo-50', 'bg-red-50');
             } else {
                 badge.innerText = '🎨 真正藝術家 (Artist)';
-                badge.className = 'inline-block px-6 py-2 rounded-full text-xl font-black mb-4 text-white bg-green-500 shadow-md';
+                badge.className = 'inline-block px-8 py-3 rounded-full text-2xl font-black mb-10 text-white bg-green-500 shadow-md';
                 warningEl.classList.add('hidden');
                 wordEl.classList.replace('text-red-600', 'text-indigo-600');
                 wordEl.classList.replace('border-red-200', 'border-indigo-100');
@@ -924,6 +897,9 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            // 🌟 初始化計數機（預先計算硬編碼內置詞庫數量）
+            updateWordCounter();
+
             if (GOOGLE_SHEET_CSV_URL && GOOGLE_SHEET_CSV_URL.startsWith('http')) {
                 const inputEl = document.getElementById('sheet-url-input');
                 if(inputEl) inputEl.value = GOOGLE_SHEET_CSV_URL;
