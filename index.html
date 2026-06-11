@@ -162,19 +162,29 @@
         </button>
     </div>
 
-    <div id="screen-reveal" class="screen flex-col items-center justify-center p-8 bg-gray-50 text-center">
-        <div class="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 transform transition-all">
+    <div id="screen-reveal" class="screen flex-col items-center justify-start py-6 px-4 bg-gray-50 text-center overflow-y-auto">
+        <div class="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-6 transform transition-all my-auto">
             <h3 id="reveal-role-title" class="text-3xl font-bold mb-2 text-gray-800">你嘅身份係...</h3>
-            <div id="reveal-role-badge" class="inline-block px-6 py-2 rounded-full text-xl font-black mb-8 text-white bg-green-500 shadow-md">
+            <div id="reveal-role-badge" class="inline-block px-6 py-2 rounded-full text-xl font-black mb-4 text-white bg-green-500 shadow-md">
                 平民 (Artist)
             </div>
             
-            <p class="text-gray-500 mb-2 font-bold">今局嘅題目係：</p>
-            <div id="reveal-word" class="text-5xl font-black text-indigo-600 mb-10 py-6 border-4 border-indigo-100 rounded-2xl bg-indigo-50 tracking-widest">
+            <p class="text-gray-500 mb-1 font-bold">今局嘅題目係：</p>
+            <div id="reveal-word" class="text-4xl font-black text-indigo-600 mb-4 py-4 border-4 border-indigo-100 rounded-2xl bg-indigo-50 tracking-widest">
                 蘋果
             </div>
 
-            <div id="imposter-warning" class="hidden bg-red-100 text-red-700 p-4 rounded-xl mb-8 font-bold text-sm">
+            <div class="w-full mb-4 text-left">
+                <p class="text-xs text-gray-500 mb-1 font-bold flex items-center justify-between px-1">
+                    <span>🔍 唔知係咩？睇下 Google 搜尋結果：</span>
+                    <a id="reveal-search-link" href="#" target="_blank" class="text-indigo-600 underline hover:text-indigo-800 font-black">在新分頁打開 ↗️</a>
+                </p>
+                <div class="w-full h-64 border-2 border-gray-200 rounded-xl overflow-hidden bg-gray-100 shadow-inner relative">
+                    <iframe id="reveal-search-iframe" src="" class="w-full h-full border-none"></iframe>
+                </div>
+            </div>
+
+            <div id="imposter-warning" class="hidden bg-red-100 text-red-700 p-4 rounded-xl mb-4 font-bold text-sm">
                 ⚠️ 記住！你係臥底！其他人畫緊嘅嘢同你唔同，試下扮識畫，唔好畀人識穿！
             </div>
 
@@ -424,24 +434,13 @@
             ["拋磚引玉", "擲石頭"]
         ];
 
-        // 用戶自訂詞庫 (從 Google Sheet 載入)
         let customWordBank = [];
 
-        // 玩家專屬顏色表 (最多支援 10 個玩家，高對比度)
         const PLAYER_COLORS = [
-            '#FF3B30', // 紅色 Red
-            '#007AFF', // 藍色 Blue
-            '#4CD964', // 綠色 Green
-            '#FF9500', // 橙色 Orange
-            '#5856D6', // 紫色 Purple
-            '#FF2D55', // 粉紅 Pink
-            '#5AC8FA', // 淺藍 Light Blue
-            '#FFCC00', // 黃色 Yellow
-            '#8E8E93', // 灰色 Gray
-            '#A2845E'  // 啡色 Brown
+            '#FF3B30', '#007AFF', '#4CD964', '#FF9500', '#5856D6',
+            '#FF2D55', '#5AC8FA', '#FFCC00', '#8E8E93', '#A2845E'
         ];
 
-        // 遊戲狀態變數 (Game State Variables)
         let config = {
             players: 4,
             imposters: 1,
@@ -450,18 +449,17 @@
         };
 
         let gameState = {
-            roles: [],              // 儲存每位玩家嘅身份資訊 [{id, name, color, role, word}]
-            currentSetupIndex: 0,   // 用於傳遞 iPad 階段，記錄輪到邊個睇身份
-            currentTurnIndex: 0,    // 畫畫階段，記錄總行動次數 (0 to totalTurns - 1)
-            totalTurns: 0,          // 總畫畫次數 = players * rounds
-            strokes: [],            // 儲存所有畫過嘅筆劃資料
-            currentStroke: null,    // 暫存緊當前玩家畫緊嘅一筆
-            hasDrawnThisTurn: false,// 記錄當前玩家喺呢一局畫咗嘢未 (一筆過模式防禦)
-            realWord: "",           // 呢局嘅平民真實題目
-            fakeWord: ""            // 呢局嘅臥底假題目
+            roles: [],
+            currentSetupIndex: 0,
+            currentTurnIndex: 0,
+            totalTurns: 0,
+            strokes: [],
+            currentStroke: null,
+            hasDrawnThisTurn: false,
+            realWord: "",
+            fakeWord: ""
         };
 
-        // DOM 元素參考
         const screens = {
             setup: document.getElementById('screen-setup'),
             pass: document.getElementById('screen-pass'),
@@ -472,14 +470,10 @@
         const customAlertEl = document.getElementById('custom-alert');
         const customAlertMsg = document.getElementById('custom-alert-msg');
 
-        // 畫板相關變數
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
 
-        /**
-         * 讀取 Google Sheet CSV 資料
-         */
         async function fetchSheetWords(autoUrl = null) {
             const urlInput = autoUrl || document.getElementById('sheet-url-input').value.trim();
             const statusEl = document.getElementById('sheet-status');
@@ -514,9 +508,6 @@
             }
         }
 
-        /**
-         * 解析 CSV 文字並儲存到 customWordBank
-         */
         function parseCSV(text, statusEl) {
             const lines = text.split('\n');
             let newWords = [];
@@ -547,9 +538,6 @@
             }
         }
         
-        /**
-         * 顯示自訂警告框 (代替內建嘅 alert)
-         */
         function showAlert(msg) {
             customAlertMsg.innerText = msg;
             customAlertEl.classList.remove('hidden');
@@ -559,9 +547,6 @@
             customAlertEl.classList.add('hidden');
         }
 
-        /**
-         * 切換螢幕顯示
-         */
         function showScreen(screenName) {
             Object.values(screens).forEach(s => s.classList.remove('active'));
             screens[screenName].classList.add('active');
@@ -572,9 +557,6 @@
             }
         }
 
-        /**
-         * 處理設定頁面嘅數值增減 (+ / - 按鈕)
-         */
         function adjustValue(type, amount) {
             let newVal = config[type] + amount;
             
@@ -607,9 +589,6 @@
             }
         }
 
-        /**
-         * 切換一筆過模式嘅 UI 狀態
-         */
         function toggleOneLineMode() {
             const checkbox = document.getElementById('toggle-one-line');
             checkbox.checked = !checkbox.checked;
@@ -626,15 +605,15 @@
             }
         }
 
-
         /**
-         * 開始遊戲：初始化狀態，分配角色，抽題目
+         * 開始遊戲：隨機打散分配角色，百分之百隨機互換 A/B 欄目身份
          */
         function startGame() {
             const combinedBank = customWordBank.length > 0 ? [...customWordBank, ...WORD_BANK] : WORD_BANK;
             const randomPairIndex = Math.floor(Math.random() * combinedBank.length);
             const pair = combinedBank[randomPairIndex];
             
+            // 🎲 隨機交叉配置！徹底擺脫「A欄一定是平民、B欄一定是臥底」嘅限制
             if (Math.random() > 0.5) {
                 gameState.realWord = pair[0];
                 gameState.fakeWord = pair[1];
@@ -671,9 +650,6 @@
             showScreen('pass');
         }
 
-        /**
-         * 更新傳遞 iPad 畫面資訊
-         */
         function updatePassScreen() {
             const player = gameState.roles[gameState.currentSetupIndex];
             document.getElementById('pass-player-name').innerText = player.name;
@@ -682,7 +658,7 @@
         }
 
         /**
-         * 顯示當前玩家嘅角色同埋題目
+         * 顯示當前玩家角色，同時更新 iframe 內嵌 Google 搜尋內容
          */
         function showRole() {
             const player = gameState.roles[gameState.currentSetupIndex];
@@ -691,20 +667,27 @@
             const wordEl = document.getElementById('reveal-word');
             const warningEl = document.getElementById('imposter-warning');
             const titleEl = document.getElementById('reveal-role-title');
+            const iframeEl = document.getElementById('reveal-search-iframe');
+            const searchLinkEl = document.getElementById('reveal-search-link');
             
             titleEl.innerText = `${player.name}，你嘅身份係...`;
             wordEl.innerText = player.word;
 
+            // 🔍 動態更新 Google Search Iframe 及其備用外部連結
+            const encodedWord = encodeURIComponent(player.word);
+            iframeEl.src = `https://www.google.com/search?q=${encodedWord}&igu=1`;
+            searchLinkEl.href = `https://www.google.com/search?q=${encodedWord}`;
+
             if (player.role === '臥底') {
                 badge.innerText = '🕵️‍♂️ 畫畫臥底 (Imposter)';
-                badge.className = 'inline-block px-6 py-2 rounded-full text-xl font-black mb-8 text-white bg-red-600 shadow-md';
+                badge.className = 'inline-block px-6 py-2 rounded-full text-xl font-black mb-4 text-white bg-red-600 shadow-md';
                 warningEl.classList.remove('hidden');
                 wordEl.classList.replace('text-indigo-600', 'text-red-600');
                 wordEl.classList.replace('border-indigo-100', 'border-red-200');
                 wordEl.classList.replace('bg-indigo-50', 'bg-red-50');
             } else {
                 badge.innerText = '🎨 真正藝術家 (Artist)';
-                badge.className = 'inline-block px-6 py-2 rounded-full text-xl font-black mb-8 text-white bg-green-500 shadow-md';
+                badge.className = 'inline-block px-6 py-2 rounded-full text-xl font-black mb-4 text-white bg-green-500 shadow-md';
                 warningEl.classList.add('hidden');
                 wordEl.classList.replace('text-red-600', 'text-indigo-600');
                 wordEl.classList.replace('border-red-200', 'border-indigo-100');
@@ -714,9 +697,6 @@
             showScreen('reveal');
         }
 
-        /**
-         * 隱藏題目並傳畀下一個，或者所有人都睇完就開始畫畫
-         */
         function nextPassOrStartDrawing() {
             gameState.currentSetupIndex++;
             if (gameState.currentSetupIndex < config.players) {
@@ -727,10 +707,6 @@
             }
         }
 
-
-        /**
-         * 初始化畫畫階段介面
-         */
         function startDrawingPhase() {
             const oneLineBadge = document.getElementById('one-line-indicator');
             if (config.isOneLineMode) {
@@ -747,9 +723,6 @@
             }, 50);
         }
 
-        /**
-         * 更新畫板上方嘅玩家資訊
-         */
         function updateDrawingUI() {
             const playerIndex = gameState.currentTurnIndex % config.players;
             const currentRound = Math.floor(gameState.currentTurnIndex / config.players) + 1;
@@ -763,9 +736,6 @@
             gameState.hasDrawnThisTurn = false;
         }
 
-        /**
-         * 處理 Canvas 大小調整，防止畫質模糊並保留圖案
-         */
         function resizeCanvas() {
             const container = document.getElementById('canvas-container');
             canvas.width = container.clientWidth;
@@ -784,10 +754,6 @@
             }
         });
 
-
-        /**
-         * 取得滑鼠/觸控喺 Canvas 內嘅準確坐標
-         */
         function getPointerPos(e) {
             const rect = canvas.getBoundingClientRect();
             const clientX = e.clientX || (e.touches && e.touches[0].clientX);
@@ -859,24 +825,14 @@
             }
         }
 
-
-        /**
-         * 顯示畫板防護罩，強迫傳畀下一位
-         */
         function showPassOverlay() {
             document.getElementById('canvas-overlay-msg').classList.remove('hidden');
         }
 
-        /**
-         * 喺防護罩撳「傳畀下一位」
-         */
         function passTurnDuringDrawing() {
             advanceTurn();
         }
 
-        /**
-         * 玩家主動撳「我畫完啦」
-         */
         function finishDrawingTurn() {
             if (!gameState.hasDrawnThisTurn) {
                 showAlert("你一筆都未畫喎！畫少少嘢先傳畀下一個啦。");
@@ -885,9 +841,6 @@
             advanceTurn();
         }
 
-        /**
-         * 前進到下一位玩家
-         */
         function advanceTurn() {
             gameState.currentTurnIndex++;
             
@@ -898,9 +851,6 @@
             }
         }
 
-        /**
-         * 重做 (Undo) - 只限當前玩家清除自己喺呢一回合畫嘅線條
-         */
         function undoLastStroke() {
             if (gameState.strokes.length === 0) return;
 
@@ -919,9 +869,6 @@
             }
         }
 
-        /**
-         * 重新繪製整個畫板 (用於 Undo 或者 Resize 之後)
-         */
         function redrawCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
@@ -939,10 +886,6 @@
             });
         }
 
-
-        /**
-         * 遊戲畫畫結束，顯示結果頁面
-         */
         function endGameAndShowResult() {
             const finalImgUrl = canvas.toDataURL('image/png');
             document.getElementById('final-drawing-img').src = finalImgUrl;
@@ -953,9 +896,6 @@
             showScreen('result');
         }
 
-        /**
-         * 登登登凳！揭曉臥底身份！
-         */
         function revealImposters() {
             document.getElementById('btn-reveal-imposter').classList.add('hidden');
             const revealSection = document.getElementById('imposter-reveal-section');
@@ -978,15 +918,11 @@
             revealSection.classList.remove('hidden');
         }
 
-        /**
-         * 重置遊戲，返回設定頁面
-         */
         function resetGame() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             showScreen('setup');
         }
 
-        // 自動載入自訂嘅 Google Sheet 連結
         window.addEventListener('DOMContentLoaded', () => {
             if (GOOGLE_SHEET_CSV_URL && GOOGLE_SHEET_CSV_URL.startsWith('http')) {
                 const inputEl = document.getElementById('sheet-url-input');
@@ -995,7 +931,6 @@
             }
         });
 
-        // 防止 Safari / iPad 橡皮筋捲動效應 (Overscroll)
         document.body.addEventListener('touchmove', function(e) { 
             if(screens.draw.classList.contains('active')){
                 e.preventDefault(); 
