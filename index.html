@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>畫畫臥底大挑戰 - 廣東話版 iPad 派對遊戲</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;700;900&display=swap');
+
+        body {
+            font-family: 'Noto Sans HK', sans-serif;
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+            touch-action: manipulation; /* 改善觸控體驗，防止雙擊放大 */
+            overflow: hidden; /* 防止成個頁面碌嚟碌去 */
+            user-select: none; /* 防止用家唔小心反白啲字 */
+            -webkit-user-select: none;
+        }
+
+        /* 隱藏唔需要嘅頁面 */
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .screen.active {
+            display: flex;
+        }
+
+        /* 畫板專屬設定 */
+        #canvas-container {
+            touch-action: none; /* 極度重要：防止喺畫板上面畫嘢嗰陣觸發 iPad 嘅手勢 (例如拖曳頁面) */
+            background-color: white;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 1rem;
+            position: relative;
+            flex-grow: 1;
+            margin-bottom: 1rem;
+            border: 4px solid #e5e7eb;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        /* 自訂顏色選擇器嘅外觀 */
+        .color-badge {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        /* 彈出警告框嘅動畫 */
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div id="screen-setup" class="screen active flex-col items-center justify-start py-8 px-4 sm:px-8 bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div class="max-w-3xl w-full bg-white rounded-3xl shadow-xl p-6 sm:p-10">
+            <h1 class="text-4xl sm:text-5xl font-black text-center text-indigo-600 mb-6 tracking-tight">🕵️‍♂️ 畫畫臥底大挑戰 🎨</h1>
+            
+            <div class="bg-indigo-50 rounded-2xl p-6 mb-8 text-sm sm:text-base text-gray-700 leading-relaxed border border-indigo-100 shadow-inner">
+                <h2 class="text-2xl font-bold text-indigo-800 mb-4 flex items-center">
+                    <span class="mr-2">📖</span> 遊戲玩法及規則 (點樣玩？)
+                </h2>
+                <p class="mb-3">歡迎嚟到專為 iPad 同埋平板電腦設計嘅《畫畫臥底大挑戰》！呢個遊戲考驗大家嘅畫功、默契、同埋演技。啱晒一大班朋友喺 Party 度玩！</p>
+                <ul class="list-disc pl-6 space-y-2 mb-4">
+                    <li><strong>身份分配：</strong> 遊戲開始時，大家輪流傳遞 iPad。大部份玩家會成為「真正藝術家」(平民)，佢哋會收到一個<strong>【真實題目】</strong>(例如：蘋果)。而少數玩家會成為「臥底」，佢哋只會收到一個<strong>【相似嘅假題目】</strong>(例如：番茄)。</li>
+                    <li><strong>畫畫環節：</strong> 每位玩家會分派到一種專屬顏色。大家輪流喺同一個畫板上面畫一筆 (或者自由畫，視乎模式)，嘗試畫出自己收到嘅題目。</li>
+                    <li><strong>一筆過模式 (One-Line Mode)：</strong> 如果開咗呢個模式，每位玩家每次輪到佢嗰陣，<strong>只可以畫連續嘅一條線</strong> (手指一離開螢幕就當畫完)。呢個模式會令遊戲更加刺激同搞笑！</li>
+                    <li><strong>捉鬼環節：</strong> 所有玩家畫完指定圈數之後，大家就要睇住幅「曠世巨作」，一齊討論同埋投票搵出邊個係畫緊唔同嘢嘅「臥底」！</li>
+                    <li><strong>臥底反擊：</strong> 就算臥底被捉到，如果佢能夠估得中平民嘅【真實題目】係咩，臥底都可以反敗為勝！</li>
+                </ul>
+                <p class="text-indigo-600 font-bold mt-4">準備好未？揀好人數同設定就可以開始啦！(建議 4-8 人遊玩效果最佳)</p>
+            </div>
+
+            <div class="space-y-6">
+                <div class="flex flex-col sm:flex-row items-center justify-between bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <label class="text-lg font-bold text-gray-800 mb-2 sm:mb-0 flex items-center">
+                        👥 總玩家人數 (Player Count)
+                    </label>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="adjustValue('players', -1)" class="w-12 h-12 rounded-full bg-red-100 text-red-600 font-bold text-xl hover:bg-red-200 active:bg-red-300 transition-colors shadow-sm">-</button>
+                        <span id="display-players" class="text-2xl font-black w-8 text-center">4</span>
+                        <button onclick="adjustValue('players', 1)" class="w-12 h-12 rounded-full bg-green-100 text-green-600 font-bold text-xl hover:bg-green-200 active:bg-green-300 transition-colors shadow-sm">+</button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-between bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <div class="flex flex-col mb-2 sm:mb-0">
+                        <label class="text-lg font-bold text-gray-800 flex items-center">
+                            🦹‍♂️ 臥底人數 (Imposter Count)
+                        </label>
+                        <span class="text-xs text-red-500 font-semibold mt-1">*必須少過總人數嘅一半 (The smaller half)</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="adjustValue('imposters', -1)" class="w-12 h-12 rounded-full bg-red-100 text-red-600 font-bold text-xl hover:bg-red-200 active:bg-red-300 transition-colors shadow-sm">-</button>
+                        <span id="display-imposters" class="text-2xl font-black w-8 text-center">1</span>
+                        <button onclick="adjustValue('imposters', 1)" class="w-12 h-12 rounded-full bg-green-100 text-green-600 font-bold text-xl hover:bg-green-200 active:bg-green-300 transition-colors shadow-sm">+</button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-between bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <div class="flex flex-col mb-2 sm:mb-0">
+                        <label class="text-lg font-bold text-gray-800 flex items-center">
+                            🔄 畫畫圈數 (Rounds)
+                        </label>
+                        <span class="text-xs text-gray-500 mt-1">每人可以畫幾多次？</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="adjustValue('rounds', -1)" class="w-12 h-12 rounded-full bg-red-100 text-red-600 font-bold text-xl hover:bg-red-200 active:bg-red-300 transition-colors shadow-sm">-</button>
+                        <span id="display-rounds" class="text-2xl font-black w-8 text-center">2</span>
+                        <button onclick="adjustValue('rounds', 1)" class="w-12 h-12 rounded-full bg-green-100 text-green-600 font-bold text-xl hover:bg-green-200 active:bg-green-300 transition-colors shadow-sm">+</button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between bg-purple-50 p-4 rounded-xl border border-purple-200 cursor-pointer" onclick="toggleOneLineMode()">
+                    <div class="flex flex-col">
+                        <label class="text-lg font-bold text-purple-900 cursor-pointer select-none">
+                            ✍️ 一筆過模式 (One-Line Mode)
+                        </label>
+                        <span class="text-xs text-purple-600 mt-1">每人每次只可以畫一條線</span>
+                    </div>
+                    <div class="relative inline-block w-16 h-8 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggle" id="toggle-one-line" class="toggle-checkbox absolute block w-8 h-8 rounded-full bg-white border-4 border-gray-300 appearance-none cursor-pointer transition-transform duration-300 ease-in-out z-10" style="top: 0; left: 0;"/>
+                        <label for="toggle-one-line" class="toggle-label block overflow-hidden h-8 rounded-full bg-gray-300 cursor-pointer"></label>
+                    </div>
+                </div>
+
+                <div class="flex flex-col bg-blue-50 p-4 rounded-xl border border-blue-200 mt-2">
+                    <label class="text-lg font-bold text-blue-900 mb-2 flex items-center">
+                        🔗 自訂題目庫 (Google Sheet)
+                    </label>
+                    <p class="text-xs text-blue-700 mb-3 leading-relaxed">
+                        想自己出題？用 Google Sheet 第一行(A)寫平民題目，第二行(B)寫臥底題目。<br>
+                        然後去「檔案 > 共用 > 發佈到網絡」(選擇 <strong>CSV 格式</strong>)，將連結貼喺度：
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="text" id="sheet-url-input" placeholder="貼上 CSV 連結 (https://docs.google.com/.../pub?output=csv)" class="flex-1 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                        <button onclick="fetchSheetWords()" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-sm whitespace-nowrap">
+                            下載題目
+                        </button>
+                    </div>
+                    <div id="sheet-status" class="text-sm mt-3 font-bold text-gray-600 hidden"></div>
+                </div>
+
+                <button onclick="startGame()" class="w-full mt-8 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-black text-2xl py-5 rounded-2xl shadow-lg transform transition-transform active:scale-95">
+                    🚀 開始遊戲 (Start Game)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-pass" class="screen flex-col items-center justify-center p-8 bg-gray-800 text-white text-center">
+        <h2 class="text-4xl md:text-6xl font-black mb-8 text-yellow-400">請傳遞 iPad</h2>
+        <p class="text-2xl md:text-3xl mb-12">而家請將部機交畀：<br><br><span id="pass-player-name" class="text-5xl font-black bg-white text-gray-900 px-8 py-4 rounded-2xl shadow-lg inline-block mt-4">玩家 1</span></p>
+        <div class="animate-bounce mb-8">
+            <svg class="w-16 h-16 mx-auto text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+        </div>
+        <button onclick="showRole()" class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold text-2xl md:text-3xl py-6 px-12 rounded-full shadow-2xl transform transition-transform active:scale-95">
+            我係 <span id="pass-btn-name">玩家 1</span>，睇題目 👀
+        </button>
+    </div>
+
+    <div id="screen-reveal" class="screen flex-col items-center justify-center p-8 bg-gray-50 text-center">
+        <div class="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 transform transition-all">
+            <h3 id="reveal-role-title" class="text-3xl font-bold mb-2 text-gray-800">你嘅身份係...</h3>
+            <div id="reveal-role-badge" class="inline-block px-6 py-2 rounded-full text-xl font-black mb-8 text-white bg-green-500 shadow-md">
+                平民 (Artist)
+            </div>
+            
+            <p class="text-gray-500 mb-2 font-bold">今局嘅題目係：</p>
+            <div id="reveal-word" class="text-5xl font-black text-indigo-600 mb-10 py-6 border-4 border-indigo-100 rounded-2xl bg-indigo-50 tracking-widest">
+                蘋果
+            </div>
+
+            <div id="imposter-warning" class="hidden bg-red-100 text-red-700 p-4 rounded-xl mb-8 font-bold text-sm">
+                ⚠️ 記住！你係臥底！其他人畫緊嘅嘢同你唔同，試下扮識畫，唔好畀人識穿！
+            </div>
+
+            <button onclick="nextPassOrStartDrawing()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold text-2xl py-5 rounded-2xl shadow-lg transform transition-transform active:scale-95 flex items-center justify-center">
+                <span class="mr-2">🙈</span> 記低咗，隱藏並繼續
+            </button>
+        </div>
+    </div>
+
+    <div id="screen-draw" class="screen flex-col p-4 sm:p-6 bg-gray-200">
+        <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-md mb-4 flex-shrink-0">
+            <div class="flex flex-col">
+                <span id="draw-round-info" class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">第 1 圈 / 共 2 圈</span>
+                <h2 id="draw-player-info" class="text-2xl sm:text-3xl font-black text-gray-800 flex items-center">
+                    <span id="current-color-badge" class="color-badge bg-red-500"></span> 輪到：玩家 1
+                </h2>
+            </div>
+            <div id="one-line-indicator" class="hidden px-4 py-2 bg-purple-100 text-purple-700 font-bold rounded-xl text-sm border border-purple-200 shadow-sm flex items-center">
+                <span class="mr-1">✍️</span> 一筆過模式生效中
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <canvas id="game-canvas"></canvas>
+            
+            <div id="canvas-overlay-msg" class="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-10 hidden">
+                <div class="bg-gray-900 text-white px-8 py-6 rounded-3xl shadow-2xl text-center transform scale-110">
+                    <p id="overlay-text" class="text-2xl font-bold mb-4">畫完啦！</p>
+                    <button onclick="passTurnDuringDrawing()" class="bg-green-500 hover:bg-green-400 text-gray-900 font-black text-xl py-3 px-8 rounded-full shadow-lg">
+                        傳畀下一位 👉
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-center flex-shrink-0 gap-4">
+            <button onclick="undoLastStroke()" id="btn-undo" class="flex-1 bg-white hover:bg-gray-50 text-gray-700 font-bold text-xl py-4 rounded-2xl shadow-md border-2 border-gray-200 flex items-center justify-center active:bg-gray-100 transition-colors">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                重做 (Undo)
+            </button>
+            <button onclick="finishDrawingTurn()" id="btn-done" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black text-xl py-4 rounded-2xl shadow-lg flex items-center justify-center active:bg-blue-800 transition-colors">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                我畫完啦 (Done)
+            </button>
+        </div>
+    </div>
+
+    <div id="screen-result" class="screen flex-col items-center p-4 sm:p-8 bg-gray-900 text-white">
+        <h2 class="text-4xl font-black text-yellow-400 mb-2 mt-4 text-center">🎨 曠世巨作完成！</h2>
+        <p class="text-xl text-gray-300 mb-6 text-center">大家一齊討論下，邊個畫啲嘢九唔搭八？邊個係臥底？</p>
+
+        <div class="w-full max-w-2xl bg-white rounded-2xl p-2 mb-8 shadow-2xl">
+            <img id="final-drawing-img" src="" alt="最終畫作" class="w-full h-auto rounded-xl border-4 border-gray-200">
+        </div>
+
+        <button id="btn-reveal-imposter" onclick="revealImposters()" class="w-full max-w-md bg-red-600 hover:bg-red-700 text-white font-black text-2xl py-5 rounded-full shadow-lg transform transition-transform active:scale-95 mb-6">
+            🚨 開估！邊個係臥底？ (Reveal)
+        </button>
+
+        <div id="imposter-reveal-section" class="w-full max-w-2xl hidden flex-col items-center animate-pop">
+            <h3 class="text-3xl font-bold mb-6 text-red-400">🔪 臥底名單：</h3>
+            <div id="imposter-list" class="flex flex-wrap justify-center gap-4 mb-8">
+                </div>
+            
+            <div class="bg-gray-800 p-6 rounded-2xl w-full text-center border border-gray-700 mb-8">
+                <p class="text-gray-400 mb-2 font-bold">平民嘅【真實題目】係：</p>
+                <p id="final-real-word" class="text-4xl font-black text-green-400 mb-4">蘋果</p>
+                <p class="text-gray-400 mb-2 font-bold">臥底收到嘅【假題目】係：</p>
+                <p id="final-fake-word" class="text-3xl font-bold text-red-400">番茄</p>
+            </div>
+
+            <button onclick="resetGame()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-2xl py-4 px-12 rounded-full shadow-lg transform transition-transform active:scale-95">
+                🔄 再玩一次 (Play Again)
+            </button>
+        </div>
+    </div>
+
+    <div id="custom-alert" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl animate-pop text-center">
+            <div class="text-red-500 mb-4 flex justify-center">
+                <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <h3 class="text-2xl font-black text-gray-800 mb-2">提示</h3>
+            <p id="custom-alert-msg" class="text-gray-600 mb-8 font-bold whitespace-pre-wrap">錯誤訊息</p>
+            <button onclick="closeAlert()" class="w-full bg-gray-800 text-white font-bold text-xl py-3 rounded-xl active:bg-gray-900 transition-colors">
+                明白 (OK)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // ⬇️⬇️⬇️ 呢度交畀 GitHub Actions 自動填寫 ⬇️⬇️⬇️
+        // =========================================================================
+        let GOOGLE_SHEET_CSV_URL = "__GOOGLE_SHEET_CSV_URL__"; 
+        
+        // 防禦性代碼：如果未經 CI 替換（例如本地直接開檔案），自動清空避免出事
+        if (GOOGLE_SHEET_CSV_URL.startsWith("__") && GOOGLE_SHEET_CSV_URL.endsWith("__")) {
+            GOOGLE_SHEET_CSV_URL = "";
+        }
+        // =========================================================================
+
+        /**
+         * 大量廣東話/香港地道詞庫 (Word Bank) - 極度擴充版 (>600組)
+         * 陣列格式：[平民真實題目, 臥底假題目]
+         */
+        const WORD_BANK = [
+            // 食物及飲品類 - 經典美食 (Food & Drinks)
+            ["蘋果", "番茄"], ["燒賣", "魚蛋"], ["奶茶", "咖啡"], ["蛋撻", "菠蘿包"],
+            ["叉燒", "燒肉"], ["腸粉", "蘿蔔糕"], ["蝦餃", "粉果"], ["凍檸茶", "熱檸水"],
+            ["公仔麵", "烏冬"], ["漢堡包", "熱狗"], ["薯條", "薯餅"], ["西多士", "三文治"],
+            ["壽司", "刺身"], ["打邊爐", "燒烤"], ["點心", "酒樓"], ["紅豆冰", "菠蘿冰"],
+            ["珍珠奶茶", "芝士奶蓋"], ["牛雜", "豬紅"], ["雞蛋仔", "格仔餅"], ["碗仔翅", "生菜魚肉"],
+            ["叉燒包", "奶黃包"], ["燒賣", "牛肉球"], ["腸粉", "炸兩"], ["春卷", "腐皮卷"], 
+            ["蛋撻", "椰撻"], ["菠蘿包", "雞尾包"], ["白切雞", "豉油雞"], ["燒肉", "乳豬"], 
+            ["牛腩麵", "雲吞麵"], ["乾炒牛河", "星洲炒米"], ["魚蛋", "墨丸"], ["臭豆腐", "炸大腸"], 
+            ["豆腐花", "雙皮奶"], ["芝麻糊", "合桃露"], ["奶茶", "鴛鴦"], ["七喜", "雪碧"], 
+            ["可樂", "忌廉"], ["通粉", "麥皮"], ["紫菜包飯", "手卷"], ["生蠔", "帶子"], 
+            ["炸雞", "烤雞"], ["薄餅", "意粉"], ["牛排", "豬排"], ["沙律", "水果盤"], 
+            ["盆菜", "佛跳牆"], ["水餃", "煎餃"], ["小籠包", "生煎包"], ["月餅", "湯圓"], 
+            ["糭", "年糕"], ["芋頭糕", "馬蹄糕"], ["豬仔包", "奶油豬"], ["麥當勞", "肯德基"], 
+            ["茶餐廳", "大牌檔"], ["冰室", "快餐店"],
+            
+            // 食物及飲品類 - 蔬果肉類與零食
+            ["士多啤梨", "車厘子"], ["西瓜", "蜜瓜"], ["香蕉", "大蕉"], ["雪梨", "水蜜桃"], 
+            ["橙", "柚子"], ["芒果", "木瓜"], ["奇異果", "火龍果"], ["提子", "藍莓"], 
+            ["榴槤", "大樹菠蘿"], ["番茄", "紅蘿蔔"], ["白菜", "菜心"], ["西蘭花", "椰菜花"], 
+            ["粟米", "番薯"], ["洋蔥", "蒜頭"], ["辣椒", "青椒"], ["冬菇", "木耳"], 
+            ["紫菜", "海帶"], ["豬肉", "牛肉"], ["雞肉", "鴨肉"], ["羊肉", "鹿肉"], 
+            ["魚", "蝦"], ["蟹", "龍蝦"], ["鮑魚", "海參"], ["魷魚", "墨魚"],
+            ["香口膠", "薄荷糖"], ["朱古力", "糖果"], ["餅乾", "薯片"], ["雪糕", "雪條"], 
+            ["爆谷", "棉花糖"], ["花生", "開心果"], ["杏仁", "核桃"], ["瓜子", "栗子"], 
+            ["蜜糖", "果醬"], ["牛油", "芝士"], ["豉油", "麻油"], ["鹽", "糖"], 
+            ["辣椒醬", "番茄醬"], ["咖喱", "沙茶醬"], ["即食麵", "杯麵"], ["罐頭", "火腿"],
+
+            // 交通及地點 (Transport & Places)
+            ["的士", "小巴"], ["港鐵", "巴士"], ["渡海小輪", "街渡"], ["電車", "輕鐵"],
+            ["旺角", "深水埗"], ["尖沙咀", "銅鑼灣"], ["中環", "金鐘"], ["大嶼山", "長洲"],
+            ["維多利亞港", "城門河"], ["海洋公園", "迪士尼"], ["機場", "高鐵站"], ["茶餐廳", "大牌檔"],
+            ["醫院", "診所"], ["超級市場", "街市"], ["便利店", "士多"], ["圖書館", "自修室"],
+            ["戲院", "紅館"], ["屋邨", "私人屋苑"], ["沙灘", "泳池"], ["行山", "露營"],
+            ["飛機", "直升機"], ["高鐵", "火車"], ["單車", "電單車"], ["私家車", "貨車"], 
+            ["救護車", "消防車"], ["警車", "解款車"], ["垃圾車", "洗街車"], ["郵輪", "遊艇"], 
+            ["帆船", "獨木舟"], ["潛水艇", "航空母艦"], ["火箭", "穿梭機"], ["熱氣球", "飛船"], 
+            ["纜車", "吊車"], ["滑板", "溜冰鞋"], ["輪椅", "BB車"], ["南丫島", "坪洲"], 
+            ["公園", "遊樂場"], ["學校", "補習社"], ["大學", "中學"], ["教堂", "寺廟"], 
+            ["銀行", "郵局"], ["警察局", "消防局"], ["法院", "監獄"], ["酒店", "賓館"], 
+            ["博物館", "太空館"], ["科學館", "藝術館"], ["體育館", "運動場"], ["健身室", "瑜伽中心"], 
+            ["美容院", "髮型屋"], ["商場", "百貨公司"], ["停車場", "油站"], ["天橋", "隧道"], 
+            ["馬路", "行人路"], ["斑馬線", "紅綠燈"], ["碼頭", "巴士站"], ["地鐵站", "火車站"], 
+            ["長城", "金字塔"], ["巴黎鐵塔", "自由神像"], ["富士山", "大峽谷"],
+
+            // 日常用品、科技及樂器 (Items, Tech & Instruments)
+            ["八達通", "信用卡"], ["冷氣機", "風扇"], ["智能手機", "平板電腦"], ["身份證", "護照"],
+            ["手錶", "鬧鐘"], ["電視", "電腦"], ["雪櫃", "微波爐"], ["雨傘", "雨衣"],
+            ["眼鏡", "隱形眼鏡"], ["口罩", "防毒面具"], ["鎖匙", "密碼鎖"], ["銀包", "手袋"],
+            ["相機", "望遠鏡"], ["耳機", "喇叭"], ["充電器", "尿袋 (移動電源)"], ["牙刷", "毛巾"],
+            ["牙膏", "漱口水"], ["沐浴露", "洗頭水"], ["番梘", "洗手液"], ["紙巾", "濕紙巾"], 
+            ["廁紙", "廚房紙"], ["垃圾袋", "環保袋"], ["衣架", "衣夾"], ["地拖", "掃把"], 
+            ["吸塵機", "掃地機械人"], ["洗衣機", "乾衣機"], ["抽濕機", "加濕器"], ["暖爐", "暖水袋"], 
+            ["水壺", "保溫樽"], ["水杯", "玻璃杯"], ["碗", "碟"], ["筷子", "刀叉"], 
+            ["鑊", "煲"], ["砧板", "菜刀"], ["鉸剪", "指甲鉗"], ["梳", "風筒"], 
+            ["化妝品", "護膚品"], ["唇膏", "指甲油"], ["香水", "止汗劑"], ["剃鬚刀", "脫毛機"], 
+            ["電芯", "插蘇"], ["電線", "拖板"], ["路由器 (Router)", "數據機 (Modem)"], ["滑鼠", "鍵盤"], 
+            ["打印機", "掃描器"], ["投影機", "屏幕"], ["USB手指", "外置硬碟"], ["光碟 (CD)", "黑膠唱片"], 
+            ["錄音筆", "咪高峰"], ["計算機", "收銀機"], ["筆記簿", "日記"], ["原子筆", "鉛筆"], 
+            ["擦膠", "塗改液"], ["間尺", "圓規"], ["螢光筆", "箱頭筆"], ["泥膠", "積木"], 
+            ["啤牌", "麻雀"], ["骰仔", "籌碼"], ["棋盤", "拼圖"], ["結他", "小提琴"], 
+            ["鋼琴", "電子琴"], ["鼓", "鈸"], ["笛", "口琴"], ["口罩", "眼罩"], 
+
+            // 動物及昆蟲 (Animals & Insects)
+            ["貓", "狗"], ["獅子", "老虎"], ["熊親", "北極熊"], ["企鵝", "海豚"],
+            ["豬", "牛"], ["馬", "羊"], ["老鼠", "倉鼠"], ["雀仔", "蝙蝠"],
+            ["蜜蜂", "蝴蝶"], ["螞蟻", "蜘蛛"], ["蚊", "蒼蠅"], ["蟑螂", "壁虎"], 
+            ["蛇", "蚯蚓"], ["青蛙", "蟾蜍"], ["烏龜", "甲魚"], ["鱷魚", "恐龍"], 
+            ["大象", "犀牛"], ["長頸鹿", "斑馬"], ["猴子", "猩猩"], ["兔子", "松鼠"], 
+            ["狐狸", "狼"], ["熊", "樹熊"], ["袋鼠", "樹懶"], ["鷹", "貓頭鷹"], 
+            ["鴿", "烏鴉"], ["鸚鵡", "孔雀"], ["天鵝", "鴨"], ["雞", "火雞"], 
+            ["鯨魚", "鯊魚"], ["八爪魚", "水母"], ["海馬", "海星"], ["珊瑚", "海草"], 
+            ["金魚", "錦鯉"], ["蠶蟲", "毛蟲"], ["螳螂", "蚱蜢"], ["蜻蜓", "螢火蟲"], 
+            ["蝸牛", "蛞蝓"], ["黑熊", "棕熊"], ["水牛", "黃牛"], ["駱駝", "羊駝"], 
+            ["刺蝟", "豪豬"], ["海豹", "海象"], ["企鵝", "海鷗"], ["鴕鳥", "火烈鳥"], 
+            ["青竹蛇", "眼鏡蛇"], ["草泥馬", "斑馬"], ["壁虎", "蜥蜴"], ["變色龍", "恐龍"],
+
+            // 衣服服飾與身體部位 (Clothing & Body)
+            ["T恤", "恤衫"], ["牛仔褲", "西褲"], ["短褲", "長褲"], ["裙", "連身裙"], 
+            ["外套", "冷衫"], ["羽絨", "風褸"], ["西裝", "燕尾服"], ["校服", "運動服"], 
+            ["睡衣", "泳衣"], ["內衣", "底褲"], ["襪", "絲襪"], ["波鞋", "皮鞋"], 
+            ["高跟鞋", "平底鞋"], ["涼鞋", "拖鞋"], ["水鞋", "雪靴"], ["帽", "頭盔"], 
+            ["頸巾", "領呔"], ["手套", "護腕"], ["皮帶", "吊帶"], ["手鈪", "頸鏈"], 
+            ["耳環", "戒指"], ["手錶", "懷錶"], ["太陽眼鏡", "老花眼鏡"], ["頭套", "假髮"], 
+            ["背包", "斜孭袋"], ["公事包", "行李箱"], ["頭", "頸"], ["膊頭", "背脊"], 
+            ["胸", "肚"], ["手", "腳"], ["手指", "腳趾"], ["手腕", "腳踭"], 
+            ["膝頭", "手踭"], ["大髀", "小腿"], ["屁股", "腰"], ["面", "下巴"], 
+            ["額頭", "面珠墩"], ["眼", "眉毛"], ["耳仔", "鼻"], ["口", "唇"], 
+            ["牙齒", "舌頭"], ["頭髮", "鬍鬚"], ["指甲", "皮膚"], ["骨", "肉"], 
+            ["血管", "神經"], ["心臟", "肺"], ["胃", "腸"], ["大腦", "脊髓"], 
+
+            // 職業、人物與動作 (Roles, Jobs & Actions)
+            ["警察", "保安"], ["醫生", "護士"], ["老師", "校長"], ["司機", "車長"],
+            ["老闆", "打工仔"], ["YouTuber", "明星"], ["學生", "考生"], ["外賣員", "速遞員"],
+            ["消防員", "救護員"], ["律師", "法官"], ["工程師", "建築師"], ["廚師", "侍應"], 
+            ["收銀員", "理貨員"], ["清潔工", "洗碗工"], ["記者", "主播"], ["攝影師", "導演"], 
+            ["演員", "歌手"], ["作家", "畫家"], ["音樂家", "舞蹈家"], ["運動員", "教練"], 
+            ["軍人", "警察"], ["海關", "入境處"], ["郵差", "速遞員"], ["空姐", "機師"], 
+            ["導遊", "領隊"], ["司儀", "DJ"], ["魔術師", "小丑"], ["和尚", "神父"], 
+            ["乞丐", "富翁"], ["皇帝", "總統"], ["公主", "王子"], ["外星人", "鬼魂"], 
+            ["神仙", "妖怪"], ["超人", "蝙蝠俠"], 
+            ["游水", "跑步"], ["打波", "踢波"], ["唱歌", "跳舞"], ["打機", "睇戲"],
+            ["瞓覺", "發夢"], ["沖涼", "洗頭"], ["返工", "放假"], ["考試", "做功課"],
+            ["結婚", "拍拖"], ["釣魚", "捉蝦"], ["燒烤", "野餐"], ["踩單車", "滑板"], 
+            ["溜冰", "滑雪"], ["潛水", "衝浪"], ["跳傘", "攀石"], ["做gym", "做瑜伽"], 
+            ["打拳", "武術"], ["捉棋", "打麻雀"], ["睇書", "睇報紙"], ["聽歌", "聽收音機"], 
+            ["影相", "拍片"], ["畫畫", "寫字"], ["煮飯", "洗碗"], ["掃地", "拖地"], 
+            ["洗衫", "晾衫"], ["化妝", "落妝"], ["剃鬚", "剪頭髮"], ["買餸", "行街"], 
+            ["網購", "格價"], ["排隊", "霸位"], ["搭車", "轉車"], ["過馬路", "等燈"], 
+            ["加", "減"], ["乘", "除"], ["愛", "恨"], 
+            ["開心", "傷心"], ["嬲", "驚"], ["悶", "煩"], ["成功", "失敗"], 
+            ["希望", "絕望"], ["生", "死"], ["夢想", "現實"], ["過去", "未來"],
+            
+            // 家居環境與建築 (Home & Environment)
+            ["升降機", "扶手電梯"], ["樓梯", "走廊"], ["天台", "露台"], ["花園", "車房"], 
+            ["大堂", "保安亭"], ["信箱", "垃圾房"], ["會所", "泳池"], ["更衣室", "洗手間"], 
+            ["廁所", "浴室"], ["廚房", "客廳"], ["睡房", "書房"], ["飯廳", "雜物房"], 
+            ["梳化", "茶几"], ["電視櫃", "鞋櫃"], ["衣櫃", "書櫃"], ["床", "床褥"], 
+            ["被", "枕頭"], ["床單", "被袋"], ["窗簾", "地毯"], ["垃圾桶", "回收箱"], 
+            ["花樽", "盆栽"], ["相架", "掛畫"], ["時鐘", "日曆"], ["鏡", "梳"], 
+            ["化妝枱", "書枱"], ["電腦枱", "餐枱"], ["摺櫈", "吧櫈"], ["門", "窗"],
+
+            // 香港地標與文化 (HK Landmarks & Culture)
+            ["尖沙咀鐘樓", "大三巴牌坊"], ["黃大仙祠", "車公廟"], ["青馬大橋", "昂船洲大橋"], 
+            ["天壇大佛", "金紫荊廣場"], ["太空館", "科學館"], ["獅子山", "太平山"],
+            ["大館", "PMQ元創方"], ["廟街", "女人街"], ["蘭桂坊", "蘇豪區"],
+            ["菠蘿油", "豬扒包"], ["西多士", "法式吐司"], ["絲襪奶茶", "黑牛"],
+            ["格仔餅", "雞蛋仔"], ["白糖糕", "砵仔糕"], ["老婆餅", "皮蛋酥"],
+
+            // 品牌、人物與流行文化 (Brands, Pop Culture & Visuals)
+            ["周星馳", "劉德華"], ["李小龍", "成龍"], ["葉問", "黃飛鴻"],
+            ["多啦A夢", "老夫子"], ["高達", "變形金剛"], ["比卡超", "數碼暴龍"],
+            ["超級馬里奧", "超音鼠"], ["蝙蝠俠", "蜘蛛俠"], ["鐵甲奇俠 (Iron Man)", "美國隊長"],
+            ["蘋果 (Apple)", "三星 (Samsung)"], ["Nike", "Adidas"], ["麥當勞叔叔", "肯德基爺爺"],
+
+            // 搞怪廣東話俗語 (可畫出嚟的) (Visual Slang)
+            ["炒魷魚", "燒豆腐"], ["放飛機", "擲紙飛機"], ["戴綠帽", "買冷帽"],
+            ["食死貓", "餵流浪貓"], ["扯線木偶", "稻草人"], ["洗黑錢", "洗衫"],
+            ["一頭霧水", "滿頭大汗"], ["吹水", "飲水"], ["捉黃腳鱲", "捉雞"],
+            ["拋磚引玉", "擲石頭"]
+        ];
+
+        // 用戶自訂詞庫 (從 Google Sheet 載入)
+        let customWordBank = [];
+
+        // 玩家專屬顏色表 (最多支援 10 個玩家，高對比度)
+        const PLAYER_COLORS = [
+            '#FF3B30', // 紅色 Red
+            '#007AFF', // 藍色 Blue
+            '#4CD964', // 綠色 Green
+            '#FF9500', // 橙色 Orange
+            '#5856D6', // 紫色 Purple
+            '#FF2D55', // 粉紅 Pink
+            '#5AC8FA', // 淺藍 Light Blue
+            '#FFCC00', // 黃色 Yellow
+            '#8E8E93', // 灰色 Gray
+            '#A2845E'  // 啡色 Brown
+        ];
+
+        // 遊戲狀態變數 (Game State Variables)
+        let config = {
+            players: 4,
+            imposters: 1,
+            rounds: 2,
+            isOneLineMode: false
+        };
+
+        let gameState = {
+            roles: [],              // 儲存每位玩家嘅身份資訊 [{id, name, color, role, word}]
+            currentSetupIndex: 0,   // 用於傳遞 iPad 階段，記錄輪到邊個睇身份
+            currentTurnIndex: 0,    // 畫畫階段，記錄總行動次數 (0 to totalTurns - 1)
+            totalTurns: 0,          // 總畫畫次數 = players * rounds
+            strokes: [],            // 儲存所有畫過嘅筆劃資料
+            currentStroke: null,    // 暫存緊當前玩家畫緊嘅一筆
+            hasDrawnThisTurn: false,// 記錄當前玩家喺呢一局畫咗嘢未 (一筆過模式防禦)
+            realWord: "",           // 呢局嘅平民真實題目
+            fakeWord: ""            // 呢局嘅臥底假題目
+        };
+
+        // DOM 元素參考
+        const screens = {
+            setup: document.getElementById('screen-setup'),
+            pass: document.getElementById('screen-pass'),
+            reveal: document.getElementById('screen-reveal'),
+            draw: document.getElementById('screen-draw'),
+            result: document.getElementById('screen-result')
+        };
+        const customAlertEl = document.getElementById('custom-alert');
+        const customAlertMsg = document.getElementById('custom-alert-msg');
+
+        // 畫板相關變數
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+
+        /**
+         * 讀取 Google Sheet CSV 資料
+         */
+        async function fetchSheetWords(autoUrl = null) {
+            const urlInput = autoUrl || document.getElementById('sheet-url-input').value.trim();
+            const statusEl = document.getElementById('sheet-status');
+            
+            if (!urlInput) {
+                if (!autoUrl) showAlert("請輸入有效嘅 Google Sheet CSV 連結！");
+                return;
+            }
+
+            if (!urlInput.includes('output=csv') && !urlInput.includes('format=csv')) {
+                if (!autoUrl) showAlert("⚠️ 條 Link 似係普通分享連結！\n請去 Google Sheet 撳「檔案(File)」->「共用(Share)」->「發佈到網絡(Publish to web)」-> 格式揀「CSV」，然後複製嗰條新 Link。");
+                return;
+            }
+
+            statusEl.classList.remove('hidden');
+            statusEl.innerText = "⏳ 努力載入緊...";
+            statusEl.className = "text-sm mt-3 font-bold text-blue-600";
+
+            try {
+                const response = await fetch(urlInput);
+                if (!response.ok) throw new Error('網絡請求失敗');
+                
+                const text = await response.text();
+                parseCSV(text, statusEl);
+            } catch (error) {
+                console.error(error);
+                statusEl.innerText = "❌ 載入失敗！可能係連結唔啱，或者未設定公開。";
+                statusEl.className = "text-sm mt-3 font-bold text-red-600";
+                if (!autoUrl) {
+                    showAlert("無法載入資料 (CORS 或網絡錯誤)！\n請確保檔案已正確設定為「發佈到網絡 (Publish to web) -> CSV」。");
+                }
+            }
+        }
+
+        /**
+         * 解析 CSV 文字並儲存到 customWordBank
+         */
+        function parseCSV(text, statusEl) {
+            const lines = text.split('\n');
+            let newWords = [];
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                const parts = line.split(',');
+                if (parts.length >= 2) {
+                    const realWord = parts[0].replace(/['"]/g, '').trim();
+                    const fakeWord = parts[1].replace(/['"]/g, '').trim();
+                    
+                    if (realWord && fakeWord && realWord !== '平民題目' && fakeWord !== '臥底題目') {
+                        newWords.push([realWord, fakeWord]);
+                    }
+                }
+            }
+
+            if (newWords.length > 0) {
+                customWordBank = newWords;
+                statusEl.innerText = `✅ 成功載入 ${newWords.length} 組自訂題目！\n今局會將自訂題目同預設題目混合一齊抽。`;
+                statusEl.className = "text-sm mt-3 font-bold text-green-600";
+            } else {
+                statusEl.innerText = "⚠️ 搵唔到有效嘅題目。";
+                statusEl.className = "text-sm mt-3 font-bold text-yellow-600";
+                showAlert("喺 CSV 入面搵唔到有效嘅題目！\n請確保格式係 A欄:平民題目, B欄:臥底題目。");
+            }
+        }
+        
+        /**
+         * 顯示自訂警告框 (代替內建嘅 alert)
+         */
+        function showAlert(msg) {
+            customAlertMsg.innerText = msg;
+            customAlertEl.classList.remove('hidden');
+        }
+
+        function closeAlert() {
+            customAlertEl.classList.add('hidden');
+        }
+
+        /**
+         * 切換螢幕顯示
+         */
+        function showScreen(screenName) {
+            Object.values(screens).forEach(s => s.classList.remove('active'));
+            screens[screenName].classList.add('active');
+            
+            if (screenName === 'draw') {
+                resizeCanvas();
+                redrawCanvas();
+            }
+        }
+
+        /**
+         * 處理設定頁面嘅數值增減 (+ / - 按鈕)
+         */
+        function adjustValue(type, amount) {
+            let newVal = config[type] + amount;
+            
+            if (type === 'players') {
+                if (newVal < 3) newVal = 3;   
+                if (newVal > 10) newVal = 10; 
+                config.players = newVal;
+                document.getElementById('display-players').innerText = config.players;
+                
+                let maxImposters = Math.floor((config.players - 1) / 2);
+                if (config.imposters > maxImposters) {
+                    config.imposters = maxImposters;
+                    if (config.imposters < 1) config.imposters = 1;
+                    document.getElementById('display-imposters').innerText = config.imposters;
+                }
+            } else if (type === 'imposters') {
+                let maxImposters = Math.floor((config.players - 1) / 2);
+                if (newVal < 1) newVal = 1;
+                if (newVal > maxImposters) {
+                    showAlert(`⚠️ 臥底人數必須少過總人數嘅一半！\n以 ${config.players} 人為例，最多只可以有 ${maxImposters} 個臥底。`);
+                    return;
+                }
+                config.imposters = newVal;
+                document.getElementById('display-imposters').innerText = config.imposters;
+            } else if (type === 'rounds') {
+                if (newVal < 1) newVal = 1;
+                if (newVal > 5) newVal = 5;
+                config.rounds = newVal;
+                document.getElementById('display-rounds').innerText = config.rounds;
+            }
+        }
+
+        /**
+         * 切換一筆過模式嘅 UI 狀態
+         */
+        function toggleOneLineMode() {
+            const checkbox = document.getElementById('toggle-one-line');
+            checkbox.checked = !checkbox.checked;
+            config.isOneLineMode = checkbox.checked;
+            
+            if (config.isOneLineMode) {
+                checkbox.style.transform = 'translateX(100%)';
+                checkbox.classList.add('border-purple-600');
+                checkbox.nextElementSibling.classList.replace('bg-gray-300', 'bg-purple-300');
+            } else {
+                checkbox.style.transform = 'translateX(0)';
+                checkbox.classList.remove('border-purple-600');
+                checkbox.nextElementSibling.classList.replace('bg-purple-300', 'bg-gray-300');
+            }
+        }
+
+
+        /**
+         * 開始遊戲：初始化狀態，分配角色，抽題目
+         */
+        function startGame() {
+            const combinedBank = customWordBank.length > 0 ? [...customWordBank, ...WORD_BANK] : WORD_BANK;
+            const randomPairIndex = Math.floor(Math.random() * combinedBank.length);
+            const pair = combinedBank[randomPairIndex];
+            
+            if (Math.random() > 0.5) {
+                gameState.realWord = pair[0];
+                gameState.fakeWord = pair[1];
+            } else {
+                gameState.realWord = pair[1];
+                gameState.fakeWord = pair[0];
+            }
+
+            let playersArray = Array.from({length: config.players}, (_, i) => ({
+                id: i,
+                name: `玩家 ${i + 1}`,
+                color: PLAYER_COLORS[i],
+                role: '平民', 
+                word: gameState.realWord
+            }));
+
+            let imposterIndices = [];
+            while(imposterIndices.length < config.imposters) {
+                let randIndex = Math.floor(Math.random() * config.players);
+                if (!imposterIndices.includes(randIndex)) {
+                    imposterIndices.push(randIndex);
+                    playersArray[randIndex].role = '臥底';
+                    playersArray[randIndex].word = gameState.fakeWord;
+                }
+            }
+
+            gameState.roles = playersArray;
+            gameState.currentSetupIndex = 0;
+            gameState.currentTurnIndex = 0;
+            gameState.totalTurns = config.players * config.rounds;
+            gameState.strokes = [];
+            
+            updatePassScreen();
+            showScreen('pass');
+        }
+
+        /**
+         * 更新傳遞 iPad 畫面資訊
+         */
+        function updatePassScreen() {
+            const player = gameState.roles[gameState.currentSetupIndex];
+            document.getElementById('pass-player-name').innerText = player.name;
+            document.getElementById('pass-player-name').style.color = player.color;
+            document.getElementById('pass-btn-name').innerText = player.name;
+        }
+
+        /**
+         * 顯示當前玩家嘅角色同埋題目
+         */
+        function showRole() {
+            const player = gameState.roles[gameState.currentSetupIndex];
+            
+            const badge = document.getElementById('reveal-role-badge');
+            const wordEl = document.getElementById('reveal-word');
+            const warningEl = document.getElementById('imposter-warning');
+            const titleEl = document.getElementById('reveal-role-title');
+            
+            titleEl.innerText = `${player.name}，你嘅身份係...`;
+            wordEl.innerText = player.word;
+
+            if (player.role === '臥底') {
+                badge.innerText = '🕵️‍♂️ 畫畫臥底 (Imposter)';
+                badge.className = 'inline-block px-6 py-2 rounded-full text-xl font-black mb-8 text-white bg-red-600 shadow-md';
+                warningEl.classList.remove('hidden');
+                wordEl.classList.replace('text-indigo-600', 'text-red-600');
+                wordEl.classList.replace('border-indigo-100', 'border-red-200');
+                wordEl.classList.replace('bg-indigo-50', 'bg-red-50');
+            } else {
+                badge.innerText = '🎨 真正藝術家 (Artist)';
+                badge.className = 'inline-block px-6 py-2 rounded-full text-xl font-black mb-8 text-white bg-green-500 shadow-md';
+                warningEl.classList.add('hidden');
+                wordEl.classList.replace('text-red-600', 'text-indigo-600');
+                wordEl.classList.replace('border-red-200', 'border-indigo-100');
+                wordEl.classList.replace('bg-red-50', 'bg-indigo-50');
+            }
+
+            showScreen('reveal');
+        }
+
+        /**
+         * 隱藏題目並傳畀下一個，或者所有人都睇完就開始畫畫
+         */
+        function nextPassOrStartDrawing() {
+            gameState.currentSetupIndex++;
+            if (gameState.currentSetupIndex < config.players) {
+                updatePassScreen();
+                showScreen('pass');
+            } else {
+                startDrawingPhase();
+            }
+        }
+
+
+        /**
+         * 初始化畫畫階段介面
+         */
+        function startDrawingPhase() {
+            const oneLineBadge = document.getElementById('one-line-indicator');
+            if (config.isOneLineMode) {
+                oneLineBadge.classList.remove('hidden');
+            } else {
+                oneLineBadge.classList.add('hidden');
+            }
+
+            updateDrawingUI();
+            showScreen('draw');
+            
+            setTimeout(() => {
+                resizeCanvas();
+            }, 50);
+        }
+
+        /**
+         * 更新畫板上方嘅玩家資訊
+         */
+        function updateDrawingUI() {
+            const playerIndex = gameState.currentTurnIndex % config.players;
+            const currentRound = Math.floor(gameState.currentTurnIndex / config.players) + 1;
+            const player = gameState.roles[playerIndex];
+
+            document.getElementById('draw-round-info').innerText = `第 ${currentRound} 圈 / 共 ${config.rounds} 圈`;
+            const playerInfoEl = document.getElementById('draw-player-info');
+            playerInfoEl.innerHTML = `<span class="color-badge" style="background-color: ${player.color}"></span> 輪到：${player.name}`;
+            
+            document.getElementById('canvas-overlay-msg').classList.add('hidden');
+            gameState.hasDrawnThisTurn = false;
+        }
+
+        /**
+         * 處理 Canvas 大小調整，防止畫質模糊並保留圖案
+         */
+        function resizeCanvas() {
+            const container = document.getElementById('canvas-container');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 6;
+            
+            redrawCanvas();
+        }
+
+        window.addEventListener('resize', () => {
+            if (screens.draw.classList.contains('active')) {
+                resizeCanvas();
+            }
+        });
+
+
+        /**
+         * 取得滑鼠/觸控喺 Canvas 內嘅準確坐標
+         */
+        function getPointerPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        canvas.addEventListener('pointerdown', startDrawingAction);
+        canvas.addEventListener('pointermove', drawAction);
+        canvas.addEventListener('pointerup', stopDrawingAction);
+        canvas.addEventListener('pointercancel', stopDrawingAction);
+        canvas.addEventListener('pointerout', stopDrawingAction);
+
+        function startDrawingAction(e) {
+            if (!document.getElementById('canvas-overlay-msg').classList.contains('hidden')) return;
+            
+            if (config.isOneLineMode && gameState.hasDrawnThisTurn) {
+                showAlert("一筆過模式！你已經畫完一筆啦，請撳「我畫完啦」交畀下一位。");
+                return;
+            }
+
+            isDrawing = true;
+            const pos = getPointerPos(e);
+            const currentPlayer = gameState.roles[gameState.currentTurnIndex % config.players];
+
+            gameState.currentStroke = {
+                color: currentPlayer.color,
+                points: [pos],
+                turnIndex: gameState.currentTurnIndex 
+            };
+
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            ctx.strokeStyle = currentPlayer.color;
+            
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            
+            e.preventDefault();
+        }
+
+        function drawAction(e) {
+            if (!isDrawing) return;
+            
+            const pos = getPointerPos(e);
+            gameState.currentStroke.points.push(pos);
+
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            
+            e.preventDefault();
+        }
+
+        function stopDrawingAction(e) {
+            if (!isDrawing) return;
+            isDrawing = false;
+
+            if (gameState.currentStroke && gameState.currentStroke.points.length > 0) {
+                gameState.strokes.push(gameState.currentStroke);
+                gameState.currentStroke = null;
+                gameState.hasDrawnThisTurn = true;
+
+                if (config.isOneLineMode) {
+                    showPassOverlay();
+                }
+            }
+        }
+
+
+        /**
+         * 顯示畫板防護罩，強迫傳畀下一位
+         */
+        function showPassOverlay() {
+            document.getElementById('canvas-overlay-msg').classList.remove('hidden');
+        }
+
+        /**
+         * 喺防護罩撳「傳畀下一位」
+         */
+        function passTurnDuringDrawing() {
+            advanceTurn();
+        }
+
+        /**
+         * 玩家主動撳「我畫完啦」
+         */
+        function finishDrawingTurn() {
+            if (!gameState.hasDrawnThisTurn) {
+                showAlert("你一筆都未畫喎！畫少少嘢先傳畀下一個啦。");
+                return;
+            }
+            advanceTurn();
+        }
+
+        /**
+         * 前進到下一位玩家
+         */
+        function advanceTurn() {
+            gameState.currentTurnIndex++;
+            
+            if (gameState.currentTurnIndex >= gameState.totalTurns) {
+                endGameAndShowResult();
+            } else {
+                updateDrawingUI();
+            }
+        }
+
+        /**
+         * 重做 (Undo) - 只限當前玩家清除自己喺呢一回合畫嘅線條
+         */
+        function undoLastStroke() {
+            if (gameState.strokes.length === 0) return;
+
+            const lastStroke = gameState.strokes[gameState.strokes.length - 1];
+            if (lastStroke.turnIndex === gameState.currentTurnIndex) {
+                gameState.strokes.pop();
+                redrawCanvas();
+                
+                const hasStrokesLeftThisTurn = gameState.strokes.some(s => s.turnIndex === gameState.currentTurnIndex);
+                if (!hasStrokesLeftThisTurn) {
+                    gameState.hasDrawnThisTurn = false;
+                    document.getElementById('canvas-overlay-msg').classList.add('hidden'); 
+                }
+            } else {
+                showAlert("你只可以復原自己喺呢一回合畫嘅線條！不能清除上一位玩家嘅大作！");
+            }
+        }
+
+        /**
+         * 重新繪製整個畫板 (用於 Undo 或者 Resize 之後)
+         */
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            gameState.strokes.forEach(stroke => {
+                if (stroke.points.length === 0) return;
+                
+                ctx.beginPath();
+                ctx.strokeStyle = stroke.color;
+                ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+                
+                for (let i = 1; i < stroke.points.length; i++) {
+                    ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+                }
+                ctx.stroke();
+            });
+        }
+
+
+        /**
+         * 遊戲畫畫結束，顯示結果頁面
+         */
+        function endGameAndShowResult() {
+            const finalImgUrl = canvas.toDataURL('image/png');
+            document.getElementById('final-drawing-img').src = finalImgUrl;
+            
+            document.getElementById('imposter-reveal-section').classList.add('hidden');
+            document.getElementById('btn-reveal-imposter').classList.remove('hidden');
+
+            showScreen('result');
+        }
+
+        /**
+         * 登登登凳！揭曉臥底身份！
+         */
+        function revealImposters() {
+            document.getElementById('btn-reveal-imposter').classList.add('hidden');
+            const revealSection = document.getElementById('imposter-reveal-section');
+            const listContainer = document.getElementById('imposter-list');
+            
+            listContainer.innerHTML = '';
+            
+            const imposters = gameState.roles.filter(r => r.role === '臥底');
+            imposters.forEach(imp => {
+                const badge = document.createElement('div');
+                badge.className = 'px-6 py-3 rounded-xl font-black text-white text-xl shadow-md border-2 border-white';
+                badge.style.backgroundColor = imp.color;
+                badge.innerHTML = `🕵️‍♂️ ${imp.name}`;
+                listContainer.appendChild(badge);
+            });
+
+            document.getElementById('final-real-word').innerText = gameState.realWord;
+            document.getElementById('final-fake-word').innerText = gameState.fakeWord;
+
+            revealSection.classList.remove('hidden');
+        }
+
+        /**
+         * 重置遊戲，返回設定頁面
+         */
+        function resetGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            showScreen('setup');
+        }
+
+        // 自動載入自訂嘅 Google Sheet 連結
+        window.addEventListener('DOMContentLoaded', () => {
+            if (GOOGLE_SHEET_CSV_URL && GOOGLE_SHEET_CSV_URL.startsWith('http')) {
+                const inputEl = document.getElementById('sheet-url-input');
+                if(inputEl) inputEl.value = GOOGLE_SHEET_CSV_URL;
+                fetchSheetWords(GOOGLE_SHEET_CSV_URL);
+            }
+        });
+
+        // 防止 Safari / iPad 橡皮筋捲動效應 (Overscroll)
+        document.body.addEventListener('touchmove', function(e) { 
+            if(screens.draw.classList.contains('active')){
+                e.preventDefault(); 
+            }
+        }, { passive: false });
+
+    </script>
+</body>
+</html>
