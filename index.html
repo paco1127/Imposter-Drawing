@@ -244,15 +244,8 @@
                ⚠️ 記住！你係臥底！其他人畫緊嘅嘢同你唔同，試下扮識畫，唔好畀人識穿！
             </div>
             
-            <div class="flex-grow w-full border-2 border-indigo-100 rounded-2xl overflow-y-auto bg-indigo-50/40 p-6 mb-3 shadow-inner flex flex-col justify-center items-center">
-               <div class="text-indigo-950 max-w-xl text-center">
-                  <p class="text-xl font-black mb-4 text-indigo-800 flex items-center justify-center gap-2">💡 💡 派對密碼提示 💡 💡</p>
-                  <ul class="text-left text-base space-y-3 font-semibold text-gray-600 list-disc pl-5">
-                     <li>如果你對呢個詞語無概念，請撳左下方按鈕直接彈去 Google 睇圖片範例。</li>
-                     <li><span class="text-green-600 font-black">【真正藝術家】</span> 畫線好似擠牙膏咁，千祈唔好一筆畫到太明顯，廢話留返投票階段先講！</li>
-                     <li><span class="text-red-600 font-black">【臥底／白板】</span> 放鬆演技！睇實前面幾個人用緊乜嘢色，順住佢哋嘅結構扮識畫一齊混水摸魚！</li>
-                  </ul>
-               </div>
+            <div class="flex-grow w-full border-2 border-gray-200 rounded-2xl overflow-hidden bg-gray-100 relative mb-3 shadow-inner">
+               <iframe id="reveal-search-iframe" class="w-full h-full border-0 bg-white" src=""></iframe>
             </div>
             
             <div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
@@ -320,7 +313,6 @@
          <h2 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 mb-2 mt-4 text-center z-10 drop-shadow-md">🎨 曠世巨作完成！</h2>
          <p class="text-xl text-gray-300 mb-6 text-center z-10">大家一齊討論下，邊個畫啲嘢九唔搭八？邊個係臥底？</p>
          
-         <!-- 🌟 收復高塌陷 Bug 的核心 Container 佈局：不再使用 hidden 隱藏大圖，而是讓 Canvas 作為 z-20 的頂層貼紙覆蓋 -->
          <div class="w-full max-w-2xl bg-white rounded-3xl p-2 mb-6 shadow-[0_0_30px_rgba(255,255,255,0.2)] z-10 relative overflow-hidden">
             <img id="final-drawing-img" src="" alt="最終畫作" class="w-full h-auto rounded-2xl border-4 border-gray-100 block">
             <canvas id="replay-canvas" class="absolute inset-2 rounded-2xl bg-white hidden z-20"></canvas>
@@ -394,8 +386,8 @@
             ["粟米", "番薯"], ["洋蔥", "蒜頭"], ["辣椒", "青椒"], ["冬菇", "木耳"], 
             ["紫菜", "海帶"], ["豬肉", "牛肉"], ["雞肉", "鴨肉"], ["羊肉", "鹿肉"], 
             ["魚", "蝦"], ["蟹", "龍蝦"], ["鮑魚", "海參"], ["魷魚", "墨魚"],
-            ["香口 gums", "薄荷糖"], ["朱古力", "糖果"], ["餅乾", "薯片"], ["雪糕", "雪條"], 
-            ["爆谷", "棉花糖"], ["花生", "開心果"], ["杏仁", "核桃"], ["瓜子", "栗子"], 
+            ["香口膠", "薄荷糖"], ["朱古力", "糖果"], ["餅乾", "薯片"], ["雪糕", "雪條"], 
+            ["爆谷", "棉化糖"], ["花生", "開心果"], ["杏仁", "核桃"], ["瓜子", "栗子"], 
             ["蜜糖", "果醬"], ["牛油", "芝士"], ["豉油", "麻油"], ["鹽", "糖"], 
             ["辣椒醬", "番茄醬"], ["咖喱", "沙茶醬"], ["即食麵", "杯麵"], ["罐頭", "火腿"],
             ["的士", "小巴"], ["港鐵", "巴士"], ["渡海小輪", "街渡"], ["電車", "輕鐵"],
@@ -407,7 +399,7 @@
             ["救護車", "消防車"], ["警車", "解款車"], ["垃圾車", "洗街車"], ["郵輪", "遊艇"], 
             ["帆船", "獨木舟"], ["潛水艇", "航空母艦"], ["火箭", "穿梭機"], ["熱氣球", "飛船"], 
             ["纜車", "吊車"], ["滑板", "溜冰鞋"], ["輪椅", "BB車"], ["南丫島", "坪洲"], 
-            ["公園", "遊樂場"], ["學校", "補習社"], ["大學", "中學"], ["教堂", "寺廟"], 
+            ["公園", "遊樂場"], ["學校", "補習社"], ["大学", "中學"], ["教堂", "寺廟"], 
             ["銀行", "郵局"], ["警察局", "消防局"], ["法院", "監獄"], ["酒店", "賓館"], 
             ["博物館", "太空館"], ["科學館", "藝術館"], ["體育館", "運動場"], ["健身室", "瑜伽中心"], 
             ["美容院", "髮型屋"], ["商場", "百貨公司"], ["停車場", "油站"], ["天橋", "隧道"], 
@@ -515,7 +507,6 @@
          let turnTimer = null;
          let timeLeft = 0;
          
-         // 🌟 新增：重播專用的生命週期追蹤變數 (取代混亂的 setTimeout 陣列)
          let replayAnimationFrameId = null;
          let replayTimeoutIds = []; 
          
@@ -705,6 +696,7 @@
              document.getElementById('pass-btn-name').innerText = player.name;
          }
          
+         // 🌟 Iframe 控制復原：在這個函式中將 Iframe 的 src 設定回帶有 &igu=1 參數的網址
          function showRole() {
              const player = gameState.roles[gameState.currentSetupIndex];
              const badge = document.getElementById('reveal-role-badge');
@@ -713,7 +705,15 @@
              const titleEl = document.getElementById('reveal-role-title');
              
              titleEl.innerText = `${player.name}，你嘅身份係...`;
-             wordEl.innerText = player.word;
+             
+             // 如果是白板，就不要讓他在 iframe 裡看到答案
+             let queryWord = player.word;
+             if (player.role === '白板') {
+                 wordEl.innerText = '???';
+                 queryWord = '畫畫 藝術'; // 給白板隨便看一些藝術圖片攪局
+             } else {
+                 wordEl.innerText = player.word;
+             }
          
              if (player.role === '臥底') {
                  badge.innerText = '🕵️‍♂️ 畫畫臥底 (Imposter)';
@@ -734,8 +734,12 @@
                  wordEl.className = 'text-2xl sm:text-3xl font-black text-indigo-600 px-6 py-1 border-2 border-indigo-100 rounded-xl bg-indigo-50 tracking-widest shadow-inner';
              }
          
+             // 🌟 核心注入：將 iframe 和跳轉網址重新綁定到隨機抽出的題目詞彙
+             const searchIframe = document.getElementById('reveal-search-iframe');
              const searchLink = document.getElementById('reveal-search-link');
-             const encodedWord = encodeURIComponent(player.word);
+             const encodedWord = encodeURIComponent(queryWord);
+             
+             searchIframe.src = `https://www.google.com/search?q=${encodedWord}&igu=1`;
              searchLink.href = `https://www.google.com/search?q=${encodedWord}&tbm=isch`;
          
              showScreen('reveal');
@@ -961,7 +965,6 @@
              document.querySelectorAll('.confetti').forEach(e => e.remove());
          }
          
-         // 🌟 收復高難度 Bug: 拋棄傳統容易被 iPad 鎖死的大量 setTimeout，重構為遊戲專用 requestAnimationFrame 動態流暢重播
          function startReplay() {
              if (replayAnimationFrameId) cancelAnimationFrame(replayAnimationFrameId);
              replayTimeoutIds.forEach(id => clearTimeout(id));
@@ -969,10 +972,9 @@
              
              const repCanvas = document.getElementById('replay-canvas');
              
-             // 完美契合原本畫布尺寸
              repCanvas.width = canvas.width; 
              repCanvas.height = canvas.height;
-             repCanvas.classList.remove('hidden'); // 直接顯示最上層覆蓋
+             repCanvas.classList.remove('hidden'); 
              
              ctxReplay.clearRect(0, 0, repCanvas.width, repCanvas.height);
              fillCanvasBackground(ctxReplay, repCanvas.width, repCanvas.height);
@@ -988,7 +990,7 @@
              
              function animateFrames() {
                  let pointsRenderedThisFrame = 0;
-                 const speedFactor = 4; // 每幀畫多少點（數值大 = 播放速度快）
+                 const speedFactor = 4; 
                  
                  while (pointsRenderedThisFrame < speedFactor && strokeIdx < gameState.strokes.length) {
                      let stroke = gameState.strokes[strokeIdx];
@@ -1023,7 +1025,6 @@
                  if (strokeIdx < gameState.strokes.length) {
                      replayAnimationFrameId = requestAnimationFrame(animateFrames);
                  } else {
-                     // 播完後停留 1.5 秒自動收回重播畫板，顯現大圖
                      let tEnd = setTimeout(() => {
                          repCanvas.classList.add('hidden');
                      }, 1500);
@@ -1052,7 +1053,6 @@
              document.getElementById('btn-reveal-imposter').classList.add('hidden');
              document.getElementById('btn-replay').classList.add('hidden'); 
              
-             // 🌟 安全切換：開估時如果還在重播，強制切斷動畫
              if (replayAnimationFrameId) cancelAnimationFrame(replayAnimationFrameId);
              replayTimeoutIds.forEach(id => clearTimeout(id));
              document.getElementById('replay-canvas').classList.add('hidden');
