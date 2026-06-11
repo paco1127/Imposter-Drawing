@@ -144,23 +144,6 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col bg-blue-50 p-4 rounded-xl border border-blue-200 mt-2">
-                    <label class="text-lg font-bold text-blue-900 mb-2 flex items-center">
-                        🔗 自訂題目庫 (Google Sheet)
-                    </label>
-                    <p class="text-xs text-blue-700 mb-3 leading-relaxed">
-                        想自己出題？用 Google Sheet 第一行(A)寫平民題目，第二行(B)寫臥底題目。<br>
-                        然後去「檔案 > 共用 > 發佈到網絡」(選擇 <strong>CSV 格式</strong>)，將連結貼喺度：
-                    </p>
-                    <div class="flex flex-col sm:flex-row gap-2">
-                        <input type="text" id="sheet-url-input" placeholder="貼上 CSV 連結 (https://docs.google.com/.../pub?output=csv)" class="flex-1 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                        <button onclick="fetchSheetWords()" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-sm whitespace-nowrap">
-                            下載題目
-                        </button>
-                    </div>
-                    <div id="sheet-status" class="text-sm mt-3 font-bold text-gray-600 hidden"></div>
-                </div>
-
                 <button onclick="startGame()" class="w-full mt-8 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-black text-2xl py-5 rounded-2xl shadow-lg transform transition-transform active:scale-95">
                     🚀 開始遊戲 (Start Game)
                 </button>
