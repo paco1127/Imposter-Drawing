@@ -133,7 +133,7 @@
 
                 <div class="flex items-center justify-between bg-purple-50 p-4 rounded-xl border border-purple-200 cursor-pointer" onclick="toggleOneLineMode()">
                     <div class="flex flex-col">
-                        <label class="text-lg font-bold INTEGRATED text-purple-900 cursor-pointer select-none">
+                        <label class="text-lg font-bold text-purple-900 cursor-pointer select-none">
                             ✍️ 一筆過模式 (One-Line Mode)
                         </label>
                         <span class="text-xs text-purple-600 mt-1">每人每次只可以畫一條線</span>
@@ -144,21 +144,11 @@
                     </div>
                 </div>
 
-                <div class="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 shadow-sm">
-                    <label class="text-lg font-bold text-indigo-900 mb-2 block flex items-center">
-                        🔗 匯入自訂題庫 (Google Sheet CSV)
-                    </label>
-                    <div class="flex gap-2">
-                        <input type="text" id="sheet-url-input" placeholder="請貼上已發佈到網絡嘅 CSV 連結..." class="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700">
-                        <button onclick="fetchSheetWords()" class="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors shadow-md shrink-0">
-                            手動載入
-                        </button>
-                    </div>
-                    <div id="sheet-status" class="hidden text-sm mt-3 font-semibold p-3 rounded-xl text-center bg-white border border-indigo-50 shadow-inner">
-                        </div>
+                <div id="word-bank-counter" class="text-center text-sm font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-xl p-3 shadow-inner">
+                    📊 題庫載入中...
                 </div>
 
-                <button onclick="startGame()" class="w-full mt-8 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-black text-2xl py-5 rounded-2xl shadow-lg transform transition-transform active:scale-95">
+                <button onclick="startGame()" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-black text-2xl py-5 rounded-2xl shadow-lg transform transition-transform active:scale-95">
                     🚀 開始遊戲 (Start Game)
                 </button>
             </div>
@@ -345,7 +335,7 @@
             ["八達通", "信用卡"], ["冷氣機", "風扇"], ["智能手機", "平板電腦"], ["身份證", "護照"],
             ["手錶", "鬧鐘"], ["電視", "電腦"], ["雪櫃", "微波爐"], ["雨傘", "雨衣"],
             ["眼鏡", "隱形眼鏡"], ["口罩", "防毒面具"], ["鎖匙", "密碼鎖"], ["銀包", "手袋"],
-            ["相機", "望遠鏡"], ["耳機", "喇訊"], ["充電器", "尿袋 (移動電源)"], ["牙刷", "毛巾"],
+            ["相機", "望遠鏡"], ["耳機", "喇叭"], ["充電器", "尿袋 (移動電源)"], ["牙刷", "毛巾"],
             ["牙膏", "漱口水"], ["沐浴露", "洗頭水"], ["番梘", "洗手液"], ["紙巾", "濕紙巾"], 
             ["廁紙", "廚房紙"], ["垃圾袋", "環保袋"], ["衣架", "衣夾"], ["地拖", "掃把"], 
             ["吸塵機", "掃地機械人"], ["洗衣機", "乾衣機"], ["抽濕機", "加濕器"], ["暖爐", "暖水袋"], 
@@ -360,7 +350,7 @@
             ["鋼琴", "電子琴"], ["鼓", "鈸"], ["笛", "口琴"], ["口罩", "眼罩"], 
 
             // 動物及昆蟲 (Animals & Insects)
-            ["貓", "狗"], ["獅子", "老虎"], ["熊貓", "北極熊"], ["企鵝", "海豚"],
+            ["貓", "狗"], ["獅子", "老虎"], ["熊親", "北極熊"], ["企鵝", "海豚"],
             ["豬", "牛"], ["馬", "羊"], ["老鼠", "倉鼠"], ["雀仔", "蝙蝠"],
             ["蜜蜂", "蝴蝶"], ["螞蟻", "蜘蛛"], ["蚊", "蒼蠅"], ["蟑螂", "壁虎"], 
             ["蛇", "蚯蚓"], ["青蛙", "蟾蜍"], ["烏龜", "甲魚"], ["鱷魚", "恐龍"], 
@@ -427,7 +417,7 @@
 
             // 品牌、人物與流行文化 (Brands, Pop Culture & Visuals)
             ["周星馳", "劉德華"], ["李小龍", "成龍"], ["葉問", "黃飛鴻"],
-            ["多啦A夢", "老夫子"], ["高達", "變形金剛"], ["比卡超", "數碼恐龍"],
+            ["多啦A夢", "老夫子"], ["高達", "變形金剛"], ["比卡超", "數碼暴龍"],
             ["超級馬里奧", "超音鼠"], ["蝙蝠俠", "蜘蛛俠"], ["鐵甲奇俠 (Iron Man)", "美國隊長"],
             ["蘋果 (Apple)", "三星 (Samsung)"], ["Nike", "Adidas"], ["麥當勞叔叔", "肯德基爺爺"],
 
@@ -492,38 +482,44 @@
         let isDrawing = false;
 
         /**
-         * 讀取 Google Sheet CSV 資料
+         * 更新首頁嘅題庫統計看板
          */
-        async function fetchSheetWords(autoUrl = null) {
-            const urlInput = autoUrl || document.getElementById('sheet-url-input').value.trim();
-            const statusEl = document.getElementById('sheet-status');
+        function updateWordBankCounter() {
+            const counterEl = document.getElementById('word-bank-counter');
+            if (!counterEl) return;
             
-            if (!urlInput) {
-                if (!autoUrl) showAlert("請輸入有效嘅 Google Sheet CSV 連結！");
-                return;
+            const total = WORD_BANK.length + customWordBank.length;
+            if (customWordBank.length > 0) {
+                counterEl.innerHTML = `📊 題庫總數：共 <span class="text-indigo-600 font-extrabold text-lg">${total}</span> 組 (內置 ${WORD_BANK.length} 組 + 雲端自訂 ${customWordBank.length} 組)`;
+                counterEl.className = "text-center text-sm font-bold text-green-700 bg-green-50 border border-green-200 rounded-xl p-3 shadow-inner";
+            } else {
+                counterEl.innerHTML = `📊 題庫總數：共 <span class="text-indigo-600 font-extrabold text-lg">${total}</span> 組 (全部為內置地道題目)`;
+                counterEl.className = "text-center text-sm font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-xl p-3 shadow-inner";
             }
+        }
 
-            if (!urlInput.includes('output=csv') && !urlInput.includes('format=csv')) {
-                if (!autoUrl) showAlert("⚠️ 條 Link 似係普通分享連結！\n請去 Google Sheet 撳「檔案(File)」->「共用(Share)」->「發佈到網絡(Publish to web)」-> 格式揀「CSV」，然後複製嗰條新 Link。");
-                return;
+        /**
+         * 自動讀取 Google Sheet CSV 資料
+         */
+        async function fetchSheetWords(autoUrl) {
+            if (!autoUrl) return;
+            
+            const counterEl = document.getElementById('word-bank-counter');
+            if (counterEl) {
+                counterEl.innerHTML = `⏳ 正在同步雲端題庫... (內置已就緒: ${WORD_BANK.length} 組)`;
             }
-
-            statusEl.classList.remove('hidden');
-            statusEl.innerText = "⏳ 努力載入緊...";
-            statusEl.className = "text-sm mt-3 font-bold text-blue-600 p-3 rounded-xl text-center bg-white border border-indigo-50 shadow-inner";
 
             try {
-                const response = await fetch(urlInput);
+                const response = await fetch(autoUrl);
                 if (!response.ok) throw new Error('網絡請求失敗');
                 
                 const text = await response.text();
-                parseCSV(text, statusEl);
+                parseCSV(text);
             } catch (error) {
                 console.error(error);
-                statusEl.innerText = "❌ 載入失敗！可能係連結唔啱，或者未設定公開。";
-                statusEl.className = "text-sm mt-3 font-bold text-red-600 p-3 rounded-xl text-center bg-white border border-indigo-50 shadow-inner";
-                if (!autoUrl) {
-                    showAlert("無法載入資料 (CORS 或網絡錯誤)！\n請確保檔案已正確設定為「發佈到網絡 (Publish to web) -> CSV」。");
+                if (counterEl) {
+                    counterEl.innerHTML = `⚠️ 雲端題庫連線失敗，已自動啟用內置題庫 (共 ${WORD_BANK.length} 組)`;
+                    counterEl.className = "text-center text-sm font-bold text-red-600 bg-red-50 border border-red-100 rounded-xl p-3 shadow-inner";
                 }
             }
         }
@@ -531,7 +527,7 @@
         /**
          * 解析 CSV 文字並儲存到 customWordBank
          */
-        function parseCSV(text, statusEl) {
+        function parseCSV(text) {
             const lines = text.split('\n');
             let newWords = [];
             
@@ -552,13 +548,8 @@
 
             if (newWords.length > 0) {
                 customWordBank = newWords;
-                statusEl.innerText = `✅ 成功載入 ${newWords.length} 組自訂題目！\n今局會將自訂題目同預設題目混合一齊抽。`;
-                statusEl.className = "text-sm mt-3 font-bold text-green-600 p-3 rounded-xl text-center bg-white border border-indigo-50 shadow-inner";
-            } else {
-                statusEl.innerText = "⚠️ 搵唔到有效嘅題目。";
-                statusEl.className = "text-sm mt-3 font-bold text-yellow-600 p-3 rounded-xl text-center bg-white border border-indigo-50 shadow-inner";
-                showAlert("喺 CSV 入面搵唔到有效嘅題目！\n請確保格式係 A欄:平民題目, B欄:臥底題目。");
             }
+            updateWordBankCounter();
         }
         
         /**
@@ -639,7 +630,6 @@
                 checkbox.nextElementSibling.classList.replace('bg-purple-300', 'bg-gray-300');
             }
         }
-
 
         /**
          * 開始遊戲：初始化狀態，分配角色，抽題目
@@ -741,7 +731,6 @@
             }
         }
 
-
         /**
          * 初始化畫畫階段介面
          */
@@ -797,7 +786,6 @@
                 resizeCanvas();
             }
         });
-
 
         /**
          * 取得滑鼠/觸控喺 Canvas 內嘅準確坐標
@@ -872,7 +860,6 @@
                 }
             }
         }
-
 
         /**
          * 顯示畫板防護罩，強迫傳畀下一位
@@ -953,7 +940,6 @@
             });
         }
 
-
         /**
          * 遊戲畫畫結束，顯示結果頁面
          */
@@ -1000,11 +986,10 @@
             showScreen('setup');
         }
 
-        // 自動載入自訂嘅 Google Sheet 連結
+        // 自動載入自訂嘅 Google Sheet 連結及初始化計數器
         window.addEventListener('DOMContentLoaded', () => {
+            updateWordBankCounter();
             if (GOOGLE_SHEET_CSV_URL && GOOGLE_SHEET_CSV_URL.startsWith('http')) {
-                const inputEl = document.getElementById('sheet-url-input');
-                if(inputEl) inputEl.value = GOOGLE_SHEET_CSV_URL;
                 fetchSheetWords(GOOGLE_SHEET_CSV_URL);
             }
         });
